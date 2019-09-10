@@ -35,7 +35,7 @@ func NewConnect(cfg conf.SqlConfig) (cur *Cursor, err error) {
 			cfg.Host, cfg.Port, cfg.Username, cfg.Database, cfg.Password)
 		like = "ilike"
 	case "mysql":
-		args = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai",
+		args = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=utf8mb4&loc=Asia Shanghai",
 			cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
 		like = "like"
 	default:
