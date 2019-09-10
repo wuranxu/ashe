@@ -82,7 +82,6 @@ func NewClient(cfg common.EtcdConfig) (*Client, error) {
 
 		})
 		EtcdClient = &Client{kv: kv, cli: cli, scheme: common.Conf.Scheme}
-		fmt.Println(EtcdClient.scheme)
 	}
 	return EtcdClient, nil
 }

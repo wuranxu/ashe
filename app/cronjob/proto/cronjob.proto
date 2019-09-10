@@ -10,6 +10,6 @@ service cronjob {
 //    };
 //    rpc search (protocol.Request) returns (protocol.Response) {
 //    };
-//    rpc del (protocol.Request) returns (protocol.Response) {
-//    };
+    rpc Del (protocol.Request) returns (protocol.Response) {
+    };
 }

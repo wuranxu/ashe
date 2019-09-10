@@ -1,9 +1,9 @@
 package cronjob
 
 import (
+	exp "ashe/exception"
 	"ashe/library/cache/redis"
 	"encoding/json"
-	"errors"
 	"fmt"
 	rds "github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
@@ -19,12 +19,11 @@ const (
 )
 
 var (
-	JobShouldNotNull = errors.New("job不能为空")
-	PageSizeTooLong  = errors.New(fmt.Sprintf("任务列表pageSize不能超过%d条", MaxPageSize))
-	PageOutOfRange   = errors.New("job页数超出范围")
-	PageError        = errors.New("page/pageSize必须大于0")
+	JobShouldNotNull = exp.ErrString("job不能为空")
+	PageSizeTooLong  = exp.ErrString(fmt.Sprintf("任务列表pageSize不能超过%d条", MaxPageSize))
+	PageOutOfRange   = exp.ErrString("job页数超出范围")
+	PageError        = exp.ErrString("page/pageSize必须大于0")
 )
-
 
 var (
 	Pool *rds.Pool

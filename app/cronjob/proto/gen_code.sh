@@ -1,1 +1,1 @@
-protoc -I ../../../  --go_out=plugins=grpc:. cronjob.proto
+protoc -I ../../../../ -I .  --go_out=plugins=grpc:. cronjob.proto
