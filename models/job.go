@@ -63,7 +63,7 @@ func NewAsheJob(name, command, ip, user string, userId uint, pid ...uint) error 
 		Deleted: false,
 	}
 	if err := Conn.Insert(job); err != nil {
-		return InsertError.Error(err)
+		return InsertError.New(err)
 	}
 	// 更新redis
 	return job.SyncToRedis()

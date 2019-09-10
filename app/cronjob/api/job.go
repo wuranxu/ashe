@@ -7,7 +7,6 @@ import (
 	"ashe/protocol"
 	"context"
 	"encoding/json"
-	"google.golang.org/grpc"
 )
 
 type Job struct {
@@ -39,7 +38,7 @@ func (j *Job) Add(ctx context.Context, in *protocol.Request) (*protocol.Response
 
 }
 
-func (j *Job) Del(ctx context.Context, in *protocol.Request, opts ...grpc.CallOption) (*protocol.Response, error) {	res := new(protocol.Response)
+func (j *Job) Del(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {	res := new(protocol.Response)
 	jb, err := j.unmarshal(in)
 	if err != nil {
 		res.Code = code.JobMarshalFail
