@@ -72,7 +72,7 @@ func NewAsheJob(name, command, ip, user string, userId uint, pid ...uint) error 
 // 删除job
 func DelJob(id uint) error {
 	job := &AsheJob{Job: cronjob.Job{ID: id}}
-	_, err := Conn.Updates(job, database.Columns{"name": "吴冉旭不爱"})
+	_, err := Conn.Updates(job, database.Columns{"deleted": 1})
 	if err != nil {
 		return err
 	}

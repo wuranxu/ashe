@@ -38,7 +38,8 @@ func (j *Job) Add(ctx context.Context, in *protocol.Request) (*protocol.Response
 
 }
 
-func (j *Job) Del(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {	res := new(protocol.Response)
+func (j *Job) Del(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+	res := new(protocol.Response)
 	jb, err := j.unmarshal(in)
 	if err != nil {
 		res.Code = code.JobMarshalFail
@@ -47,11 +48,13 @@ func (j *Job) Del(ctx context.Context, in *protocol.Request) (*protocol.Response
 	}
 	if err = models.DelJob(jb.ID); err != nil {
 		res.Code, res.Msg = code.JobDeleteFail, err.Error()
+		return res, err
 	}
 	res.Msg = code.DeleteSuccess
 	return res, nil
 
 }
+
 //func (j *Job) Search(ctx context.Context, in *protocol.Request, opts ...grpc.CallOption) (*protocol.Response, error) {
 //
 //}
