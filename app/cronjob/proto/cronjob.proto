@@ -12,4 +12,6 @@ service cronjob {
 //    };
     rpc Del (protocol.Request) returns (protocol.Response) {
     };
+
+    rpc List(protocol.Request) returns (protocol.Response) {}
 }

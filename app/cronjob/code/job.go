@@ -1,9 +1,11 @@
 package code
 
 const (
-	none       = iota
-	JobAddFail = 10000
-	JobMarshalFail
+	none           = iota
+	JobAddFail     = 10000
+	JobMarshalFail = iota
+	PageError
+	GetListError
 	JobEditFail
 	JobUpdateFail
 	JobDeleteFail
