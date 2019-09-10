@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package protocol;
+
+message Request {
+    string requestJson = 1;
+}
+
+message Response {
+    int32 code = 1;
+    string msg = 2;
+    string resultJson = 3;
+
+}

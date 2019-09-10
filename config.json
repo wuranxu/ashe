@@ -1,0 +1,55 @@
+{
+  "dev": {
+    "database": {
+      "name": "mysql",
+      "host": "106.13.173.14",
+      "port": 3306,
+      "database": "ashe",
+      "username": "root",
+      "password": "ashetest",
+      "timeout": 3000
+    },
+    "etcd": {
+      "endpoints": [
+        "106.13.173.14:2371"
+      ],
+      "dial-timeout": 10
+    },
+    "redis": {
+      "server": "106.13.173.14:6379",
+      "password": "ashetest",
+      "port": 6379,
+      "db": 1,
+      "max_idle": 50,
+      "max_active": 50,
+      "idle_timeout": 5000
+    },
+    "scheme": "ashe"
+  },
+  "pro": {
+    "database": {
+      "name": "mysql",
+      "host": "127.0.0.1",
+      "port": 3306,
+      "database": "ashe",
+      "username": "root",
+      "password": "ashetest",
+      "timeout": 3000
+    },
+    "etcd": {
+      "endpoints": [
+        "127.0.0.1:2371"
+      ],
+      "dial-timeout": 2000
+    },
+    "redis": {
+      "server": "127.0.0.1:6379",
+      "password": "ashetest",
+      "port": 6379,
+      "db": 1,
+      "max_idle": 50,
+      "max_active": 50,
+      "idle_timeout": 5000
+    }
+  }
+}
