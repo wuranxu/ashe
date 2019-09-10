@@ -9,6 +9,7 @@ import (
 
 var (
 	InsertError = exp.ErrString("添加job出错")
+	DeleteError = exp.ErrString("删除job出错")
 )
 
 type AsheJob struct {
@@ -72,9 +73,9 @@ func NewAsheJob(name, command, ip, user string, userId uint, pid ...uint) error 
 // 删除job
 func DelJob(id uint) error {
 	job := &AsheJob{Job: cronjob.Job{ID: id}}
-	_, err := Conn.Updates(job, database.Columns{"deleted": 1})
-	if err != nil {
-		return err
+	n, err := Conn.Updates(job, database.Columns{"deleted": true})
+	if err != nil || n == 0 {
+		return DeleteError.New(err)
 	}
 	err = cronjob.DelJobFromRedis(id)
 	return err
