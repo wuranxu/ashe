@@ -2,6 +2,7 @@ package main
 
 import (
 	"ashe/app/cronjob/api"
+	"ashe/app/cronjob/models"
 	pb "ashe/app/cronjob/proto"
 	"ashe/common"
 	"ashe/db"
@@ -25,13 +26,14 @@ const (
 var (
 	port    = flag.String("port", Port, "grpc endpoints")
 	service = flag.String("service", ServiceName, "grpc endpoints")
-	conf    = flag.String("configPath", `../../config.json`, "config file path")
+	//conf    = flag.String("configPath", `../../config.json`, "config file path")
+	conf = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
 )
 
 func main() {
 	flag.Parse()
 	common.Init(*conf)
-	db.Init()
+	models.Conn = db.Init(models.Tables)
 	cronjob.InitRedisConnection(common.Conf.Redis)
 	lis, err := net.Listen("tcp", *port)
 	if err != nil {
@@ -46,7 +48,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = cli.RegisterService(*service, nt.GetLocalIp()+*port, 1)
+	err = cli.RegisterService(*service, nt.GetLocalIp()+*port, 5)
 	if err != nil {
 		panic(err)
 	}

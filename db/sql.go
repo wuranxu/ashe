@@ -3,26 +3,21 @@ package db
 import (
 	"ashe/common"
 	"ashe/library/database"
-	"ashe/models"
 	"log"
-	"sync"
 )
 
-func Init() {
-	var (
-		err  error
-		once sync.Once
-	)
-	once.Do(func() {
-		models.Conn, err = database.NewConnect(common.Conf.Database)
-		if err != nil {
-			log.Fatalf("连接数据库失败, error: %v", err)
+func Init(tables []interface{}) *database.Cursor{
+	conn, err := database.NewConnect(common.Conf.Database)
+	if err != nil {
+		log.Fatalf("连接数据库失败, error: %v", err)
+	}
+	if tables != nil {
+		for _, data := range tables {
+			conn.AutoMigrate(data)
 		}
-		for _, data := range models.Tables {
-			models.Conn.AutoMigrate(data)
-		}
-		if common.Env == "dev" {
-			models.Conn.LogMode(true)
-		}
-	})
+	}
+	if common.Env == "dev" {
+		conn.LogMode(true)
+	}
+	return conn
 }

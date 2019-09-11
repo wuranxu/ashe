@@ -2,8 +2,8 @@ package api
 
 import (
 	"ashe/app/cronjob/code"
+	"ashe/app/cronjob/models"
 	"ashe/library/cronjob"
-	"ashe/models"
 	"ashe/protocol"
 	"context"
 	"encoding/json"
@@ -65,7 +65,7 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 	res := new(protocol.Response)
 	pg := &struct {
 		Page     int `json:"page"`
-		PageSize int `json:"page_size"`
+		PageSize int `json:"pageSize"`
 	}{}
 	if err := j.unmarshalData(in, pg); err != nil {
 		res.Msg, res.Code = err.Error(), code.PageError
@@ -78,6 +78,12 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 	}
 	res.ResultJson = getRes(jbs, total)
 	return res, nil
+}
+
+func (j *Job) TestAssert(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+	return protocol.Call("assert", "equal", &protocol.Request{
+		RequestJson: `{"first": 2, "second": 3, "msg": "呀屎啦你"}`,
+	})
 }
 
 func getRes(jbs interface{}, total int) string {

@@ -21,6 +21,14 @@ type GrpcClient struct {
 	method string
 }
 
+func Call(service, method string, in *Request, opt ...grpc.CallOption) (*Response, error) {
+	client, err := NewGrpcClient(service, method)
+	if err != nil {
+		return nil, err
+	}
+	return client.Invoke(in, opt...)
+}
+
 func (c *GrpcClient) Invoke(in *Request, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

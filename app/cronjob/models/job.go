@@ -1,10 +1,15 @@
 package models
 
 import (
-	"ashe/common"
+	exp "ashe/exception"
 	"ashe/library/cronjob"
 	"ashe/library/database"
 	"time"
+)
+
+var (
+	InsertError = exp.ErrString("添加job出错")
+	DeleteError = exp.ErrString("删除job出错")
 )
 
 type AsheJob struct {
@@ -17,7 +22,7 @@ func (a *AsheJob) TableName() string { return "ashe_job" }
 
 // 同步数据到redis
 func (a *AsheJob) SyncToRedis() error {
-	conn := common.Pool.Get()
+	conn := cronjob.Pool.Get()
 	defer conn.Close()
 	return cronjob.SetJobToRedis(&a.Job)
 }
@@ -59,7 +64,7 @@ func NewAsheJob(name, command, ip, user string, userId uint, pid ...uint) error 
 		Deleted: false,
 	}
 	if err := Conn.Insert(job); err != nil {
-		return err
+		return InsertError.New(err)
 	}
 	// 更新redis
 	return job.SyncToRedis()
@@ -67,10 +72,10 @@ func NewAsheJob(name, command, ip, user string, userId uint, pid ...uint) error 
 
 // 删除job
 func DelJob(id uint) error {
-	job := &AsheJob{Job: cronjob.Job{ID:id}}
-	_, err := Conn.Updates(job, database.Columns{"name": "吴冉旭不爱"})
-	if err != nil {
-		return err
+	job := &AsheJob{Job: cronjob.Job{ID: id}}
+	n, err := Conn.Updates(job, database.Columns{"deleted": true})
+	if err != nil || n == 0 {
+		return DeleteError.New(err)
 	}
 	err = cronjob.DelJobFromRedis(id)
 	return err
