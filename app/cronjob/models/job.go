@@ -27,6 +27,38 @@ func (a *AsheJob) SyncToRedis() error {
 	return cronjob.SetJobToRedis(&a.Job)
 }
 
+// 更新redis缓存
+func deleteAllJob() error {
+	return cronjob.DeleteAllJobs()
+}
+
+// 同步缓存
+func Sync() error {
+	if err := deleteAllJob(); err != nil {
+		return err
+	}
+	jobs, err := getAllJobFromDb()
+	if err != nil {
+		return err
+	}
+	for _, j := range jobs {
+		if err = cronjob.SetJobToRedis(&j.Job); err != nil {
+			continue
+		}
+	}
+	return err
+}
+
+// 获取所有job
+func getAllJobFromDb() ([]AsheJob, error) {
+	// 从db读取job
+	jobs := make([]AsheJob, 0, 100)
+	if err := Conn.Find(&jobs).Error; err != nil {
+		return jobs, err
+	}
+	return jobs, nil
+}
+
 // 获取job列表
 func GetJobList(page, pageSize int) ([]*cronjob.Job, int, error) {
 	jobs, total, err := cronjob.GetJobList(page, pageSize)
@@ -80,8 +112,3 @@ func DelJob(id uint) error {
 	err = cronjob.DelJobFromRedis(id)
 	return err
 }
-
-//// 批量更新数据到redis
-//func UpdateJobList(conn redis.RedisCon, data []*cronjob.Job) error {
-//
-//}

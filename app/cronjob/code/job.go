@@ -5,6 +5,7 @@ const (
 	JobAddFail     = 10000
 	JobMarshalFail = iota
 	PageError
+	SyncError
 	GetListError
 	JobEditFail
 	JobUpdateFail
@@ -14,5 +15,6 @@ const (
 // 错误信息
 const (
 	InsertSuccess = "添加成功"
+	SyncSuccess = "更新成功"
 	DeleteSuccess = "删除成功"
 )

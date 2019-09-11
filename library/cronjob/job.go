@@ -124,9 +124,7 @@ func parseJob(result string) (*Job, error) {
 }
 
 // 获取所有job keys
-func getJobKeys() ([]string, int, error) {
-	conn := Pool.Get()
-	defer conn.Close()
+func getJobKeys(conn rds.Conn) ([]string, int, error) {
 	res, err := rds.Strings(conn.Do("KEYS", fmt.Sprintf(`%s:*`, JobPrefix)))
 	if err != nil {
 		return res, 0, err
@@ -160,6 +158,24 @@ func toInterface(data []string) []interface{} {
 	return result
 }
 
+// 删除缓存所有的job
+func DeleteAllJobs() error {
+	conn := Pool.Get()
+	defer conn.Close()
+	var err error
+	keys, _, err := getJobKeys(conn)
+	if err != nil {
+		return err
+	}
+	for _, k := range keys {
+		if _, err = conn.Do("DEL", k); err != nil {
+			logrus.Errorf("删除redis key失败, key: %v, error: %v", k, err)
+			continue
+		}
+	}
+	return err
+}
+
 // 获取job列表 from redis
 func GetJobList(page, pageSize int) (sortJob, int, error) {
 	conn := Pool.Get()
@@ -168,7 +184,7 @@ func GetJobList(page, pageSize int) (sortJob, int, error) {
 	if pageSize > MaxPageSize {
 		return result, 0, PageSizeTooLong
 	}
-	keys, total, err := getJobKeys()
+	keys, total, err := getJobKeys(conn)
 	if err != nil {
 		return result, total, err
 	}

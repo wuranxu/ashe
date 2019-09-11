@@ -71,7 +71,7 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 		res.Msg, res.Code = err.Error(), code.PageError
 		return res, nil
 	}
-	jbs, total, err := cronjob.GetJobList(pg.Page, pg.PageSize)
+	jbs, total, err := models.GetJobList(pg.Page, pg.PageSize)
 	if err != nil {
 		res.Msg, res.Code = err.Error(), code.PageError
 		return res, nil
@@ -82,7 +82,7 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 
 func (j *Job) TestAssert(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	return protocol.Call("assert", "equal", &protocol.Request{
-		RequestJson: `{"first": 2, "second": 3, "msg": "呀屎啦你"}`,
+		RequestJson: `{"exp": 2, "act": 3, "msg": "呀屎啦你"}`,
 	})
 }
 
@@ -92,6 +92,16 @@ func getRes(jbs interface{}, total int) string {
 	}
 	b, _ := json.Marshal(mp)
 	return string(b)
+}
+
+func (j *Job) Sync(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+	res := new(protocol.Response)
+	if err := models.Sync(); err != nil {
+		res.Code, res.Msg = code.SyncError, err.Error()
+		return res, nil
+	}
+	res.Msg = code.SyncSuccess
+	return res, nil
 }
 
 //func (j *Job) Search(ctx context.Context, in *protocol.Request, opts ...grpc.CallOption) (*protocol.Response, error) {

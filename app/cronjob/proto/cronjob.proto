@@ -6,13 +6,17 @@ import "ashe/protocol/protocol.proto";
 service cronjob {
     rpc Add (protocol.Request) returns (protocol.Response) {
     };
-//    rpc edit (protocol.Request) returns (protocol.Response) {
-//    };
-//    rpc search (protocol.Request) returns (protocol.Response) {
-//    };
+    //    rpc edit (protocol.Request) returns (protocol.Response) {
+    //    };
+    //    rpc search (protocol.Request) returns (protocol.Response) {
+    //    };
     rpc Del (protocol.Request) returns (protocol.Response) {
     };
 
-    rpc List(protocol.Request) returns (protocol.Response) {}
-    rpc TestAssert(protocol.Request) returns (protocol.Response) {}
+    rpc List (protocol.Request) returns (protocol.Response) {
+    }
+    rpc TestAssert (protocol.Request) returns (protocol.Response) {
+    }
+    rpc Sync (protocol.Request) returns (protocol.Response) {
+    }
 }
