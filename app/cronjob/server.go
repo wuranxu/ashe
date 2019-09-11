@@ -26,8 +26,8 @@ const (
 var (
 	port    = flag.String("port", Port, "grpc endpoints")
 	service = flag.String("service", ServiceName, "grpc endpoints")
-	//conf    = flag.String("configPath", `../../config.json`, "config file path")
-	conf = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
+	conf    = flag.String("configPath", `../../config.json`, "config file path")
+	//conf = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
 )
 
 func main() {
