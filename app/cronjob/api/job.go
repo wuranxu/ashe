@@ -12,7 +12,7 @@ import (
 type Job struct {
 }
 
-func (j *Job) unmarshal(in *protocol.Request, data ...interface{}) (*cronjob.Job, error) {
+func (j *Job) unmarshal(in *protocol.Request) (*cronjob.Job, error) {
 	jb := new(cronjob.Job)
 	if err := json.Unmarshal([]byte(in.RequestJson), jb); err != nil {
 		return nil, err
@@ -28,13 +28,13 @@ func (j *Job) unmarshalData(in *protocol.Request, data interface{}) error {
 
 func (j *Job) Add(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
-	jb, err := j.unmarshal(in)
-	if err != nil {
+	jb := new(models.AsheJob)
+	if err := j.unmarshalData(in, jb); err != nil {
 		res.Code = code.JobMarshalFail
 		res.Msg = err.Error()
 		return res, nil
 	}
-	if err = models.NewAsheJob(jb.Name, jb.Command, jb.IP, "洗澡狗", 22); err != nil {
+	if err := models.NewAsheJob(jb.Name, jb.Command, jb.IP, "洗澡狗", 22); err != nil {
 		res.Code = code.JobAddFail
 		res.Msg = err.Error()
 		return res, nil
@@ -46,13 +46,13 @@ func (j *Job) Add(ctx context.Context, in *protocol.Request) (*protocol.Response
 
 func (j *Job) Del(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
-	jb, err := j.unmarshal(in)
-	if err != nil {
+	jb := new(models.AsheJob)
+	if err := j.unmarshalData(in, &jb); err != nil {
 		res.Code = code.JobMarshalFail
 		res.Msg = err.Error()
 		return res, nil
 	}
-	if err = models.DelJob(jb.ID); err != nil {
+	if err := models.DelJob(jb.ID); err != nil {
 		res.Code, res.Msg = code.JobDeleteFail, err.Error()
 		return res, nil
 	}
@@ -76,7 +76,7 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 		res.Msg, res.Code = err.Error(), code.PageError
 		return res, nil
 	}
-	res.ResultJson = getRes(jbs, total)
+	res.ResultJson, res.Msg = getRes(jbs, total), code.GetListSuccess
 	return res, nil
 }
 
@@ -84,14 +84,6 @@ func (j *Job) TestAssert(ctx context.Context, in *protocol.Request) (*protocol.R
 	return protocol.Call("assert", "equal", &protocol.Request{
 		RequestJson: `{"exp": 2, "act": 3, "msg": "呀屎啦你"}`,
 	})
-}
-
-func getRes(jbs interface{}, total int) string {
-	mp := map[string]interface{}{
-		"jobs": jbs, "total": total,
-	}
-	b, _ := json.Marshal(mp)
-	return string(b)
 }
 
 func (j *Job) Sync(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
@@ -110,3 +102,11 @@ func (j *Job) Sync(ctx context.Context, in *protocol.Request) (*protocol.Respons
 //func (j *Job) Del(ctx context.Context, in *protocol.Request, opts ...grpc.CallOption) (*protocol.Response, error) {
 //
 //}
+
+func getRes(jbs interface{}, total int) string {
+	mp := map[string]interface{}{
+		"jobs": jbs, "total": total,
+	}
+	b, _ := json.Marshal(mp)
+	return string(b)
+}
