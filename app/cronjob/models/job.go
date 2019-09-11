@@ -53,7 +53,7 @@ func Sync() error {
 func getAllJobFromDb() ([]AsheJob, error) {
 	// 从db读取job
 	jobs := make([]AsheJob, 0, 100)
-	if err := Conn.Find(&jobs).Error; err != nil {
+	if err := Conn.Find(&jobs, `deleted = false`).Error; err != nil {
 		return jobs, err
 	}
 	return jobs, nil
@@ -70,8 +70,18 @@ func GetJobList(page, pageSize int) ([]*cronjob.Job, int, error) {
 		return jobs, total, nil
 	}
 	// 从db读取job
-	total, err = Conn.FindPaginationAndOrder(page, pageSize, `create_time desc`, &jobs, `deleted = false`)
-	return jobs, total, err
+	asheJobs := make([]AsheJob, 0, 10)
+	total, err = Conn.FindPaginationAndOrder(page, pageSize, `create_time desc`, &asheJobs, `deleted = false`)
+	return transJobs(asheJobs), total, err
+}
+
+// 转换job
+func transJobs(jbs []AsheJob) []*cronjob.Job {
+	result := make([]*cronjob.Job, 0, len(jbs))
+	for _, j := range jbs {
+		result = append(result, &j.Job)
+	}
+	return result
 }
 
 // 添加job
