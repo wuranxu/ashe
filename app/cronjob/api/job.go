@@ -3,6 +3,7 @@ package api
 import (
 	"ashe/app/cronjob/code"
 	"ashe/app/cronjob/models"
+	"ashe/library/check"
 	"ashe/library/cronjob"
 	"ashe/protocol"
 	"context"
@@ -31,6 +32,12 @@ func (j *Job) Add(ctx context.Context, in *protocol.Request) (*protocol.Response
 	jb := new(models.AsheJob)
 	if err := j.unmarshalData(in, jb); err != nil {
 		res.Code = code.JobMarshalFail
+		res.Msg = err.Error()
+		return res, nil
+	}
+	// 校验参数
+	if err := check.Check(jb, code.ParamsCheckError); err != nil {
+		res.Code = code.JobParseFail
 		res.Msg = err.Error()
 		return res, nil
 	}

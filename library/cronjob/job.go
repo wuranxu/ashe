@@ -40,9 +40,9 @@ func InitRedisConnection(cfg redis.RedisCliInfo) {
 
 type Job struct {
 	ID         uint      `gorm:"primary_key" json:"id"`
-	Name       string    `gorm:"type:varchar(64);not null;unique" json:"name"` // job name
-	Command    string    `gorm:"type:text; not null" json:"command"`           // shell command
-	IP         string    `gorm:"type:varchar(24)" json:"ip"`                   // 机器执行ip
+	Name       string    `gorm:"type:varchar(64);not null;unique" json:"name" check:"gt=0"` // job name
+	Command    string    `gorm:"type:text; not null" json:"command" check:"gt=0"`           // shell command
+	IP         string    `gorm:"type:varchar(24)" json:"ip"`                                   // 机器执行ip
 	Editor     string    `gorm:"type:varchar(32)" json:"editor"`
 	Creator    string    `gorm:"type:varchar(32)" json:"creator"`
 	Uid        uint      `gorm:"type:int(8)" json:"uid"`
