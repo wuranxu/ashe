@@ -4,7 +4,6 @@ import (
 	"ashe/app/cronjob/code"
 	"ashe/app/cronjob/models"
 	"ashe/library/check"
-	"ashe/library/cronjob"
 	"ashe/protocol"
 	"context"
 	"encoding/json"
@@ -13,13 +12,6 @@ import (
 type Job struct {
 }
 
-func (j *Job) unmarshal(in *protocol.Request) (*cronjob.Job, error) {
-	jb := new(cronjob.Job)
-	if err := json.Unmarshal([]byte(in.RequestJson), jb); err != nil {
-		return nil, err
-	}
-	return jb, nil
-}
 func (j *Job) unmarshalData(in *protocol.Request, data interface{}) error {
 	if err := json.Unmarshal([]byte(in.RequestJson), data); err != nil {
 		return err

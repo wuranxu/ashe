@@ -3,6 +3,7 @@ package main
 import (
 	"ashe/common"
 	"ashe/handler"
+	"ashe/library/auth"
 	"github.com/kataras/iris"
 
 	"github.com/kataras/iris/middleware/logger"
@@ -21,7 +22,9 @@ func main() {
 
 	// Method:   GET
 	// Resource: http://localhost:8080
-	app.Handle("POST", "/:service/:method", handler.CallRpc)
+	//app.Handle("POST", "/:service/:method", auth.Auth(handler.CallRpc))
+	app.Handle("POST", "/api/:service/:method", auth.Auth(handler.CallRpcWithAuth))
+	app.Handle("POST", "/auth/:service/:method", handler.CallRpc)
 
 	// same as app.Handle("GET", "/ping", [...])
 	// Method:   GET

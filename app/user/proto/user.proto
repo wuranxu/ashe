@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "ashe/protocol/protocol.proto";
+
+
+service user {
+    // 注册用户
+    rpc Register (protocol.Request) returns (protocol.Response) {
+    };
+    rpc Login (protocol.Request) returns (protocol.Response) {
+    };
+    rpc Edit (protocol.Request) returns (protocol.Response) {
+    }
+}

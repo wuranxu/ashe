@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"ashe/library/auth"
 	"ashe/protocol"
 	"encoding/json"
 	"errors"
@@ -93,6 +94,8 @@ func CallRpc(ctx iris.Context) {
 		response(ctx, result)
 		return
 	}
+	// 新增请求ip地址
+	params["remote_ip"] = ctx.RemoteAddr()
 	requestData, err := params.Marshal()
 	if err != nil {
 		result.Msg = err.Error()
@@ -100,6 +103,41 @@ func CallRpc(ctx iris.Context) {
 		return
 	}
 	resp, err := client.Invoke(requestData)
+	if err != nil {
+		result.Msg = err.Error()
+		response(ctx, result)
+		return
+	}
+	response(ctx, result.toApi(*resp))
+}
+
+func CallRpcWithAuth(ctx iris.Context, user *auth.CustomClaims) {
+	result := new(res)
+	params := make(Params)
+	if err := ctx.ReadJSON(&params); err != nil {
+		result.Code = 40000
+		result.Msg = "抱歉，网络似乎开小差了"
+		response(ctx, result)
+		return
+	}
+	service := ctx.Params().Get("service")
+	method := ctx.Params().Get("method")
+	client, err := protocol.NewGrpcClient(service, method)
+	defer client.Close()
+	if err != nil {
+		result.Msg = err.Error()
+		response(ctx, result)
+		return
+	}
+	// 新增请求ip地址
+	params["remote_ip"] = ctx.RemoteAddr()
+	requestData, err := params.Marshal()
+	if err != nil {
+		result.Msg = err.Error()
+		response(ctx, result)
+		return
+	}
+	resp, err := client.InvokeWithToken(requestData, user.Marshal())
 	if err != nil {
 		result.Msg = err.Error()
 		response(ctx, result)

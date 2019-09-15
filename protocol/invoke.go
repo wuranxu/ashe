@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/resolver"
 	"time"
 )
@@ -33,6 +34,18 @@ func (c *GrpcClient) Invoke(in *Request, opts ...grpc.CallOption) (*Response, er
 	out := new(Response)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if err := c.cc.Invoke(ctx, c.method, in, out, opts...); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+func (c *GrpcClient) InvokeWithToken(in *Request, userInfo string, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	md := metadata.New(map[string]string{"user": userInfo})
+	ctx = metadata.NewOutgoingContext(ctx, md)
 	if err := c.cc.Invoke(ctx, c.method, in, out, opts...); err != nil {
 		return out, err
 	}
