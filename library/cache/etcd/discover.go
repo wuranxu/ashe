@@ -1,15 +1,29 @@
 package etcd
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
-func RegisterMethod(client *Client, service, method string) error {
-	_, err := client.cli.Put(client.cli.Ctx(), fmt.Sprintf("%s.%s", service, method), fmt.Sprintf("/%s/%s", service, method))
+type Method struct {
+	Auth bool // 是否需要登录
+	Path string
+}
+
+func (m *Method) Marshal() string {
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func RegisterMethod(client *Client, service, method string, auth bool) error {
+	md := &Method{
+		Auth: auth,
+		Path: fmt.Sprintf("/%s/%s", service, method),
+	}
+	_, err := client.cli.Put(client.cli.Ctx(), fmt.Sprintf("%s.%s", service, method), md.Marshal())
 	if err != nil {
 		fmt.Println("注册方法失败, error: ", err)
 		return err
 	}
-	client.cli.Get(client.cli.Ctx(), fmt.Sprintf("%s.%s", service, method))
 	return nil
 }

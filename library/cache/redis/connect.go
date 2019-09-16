@@ -27,6 +27,7 @@ type RedisCliInfo struct {
 	MaxIdle     int    `json:"max_idle"`
 	MaxActive   int    `json:"max_active"`
 	IdleTimeout int    `json:"idle_timeout"`
+	PoolSize int `json:"pool_size"`
 }
 
 func (t RedisCliInfo) TableName() string { return "redis_cli_info" }

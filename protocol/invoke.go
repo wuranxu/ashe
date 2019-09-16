@@ -2,8 +2,10 @@ package protocol
 
 import (
 	"ashe/common"
+	"ashe/library/auth"
 	"ashe/library/cache/etcd"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"google.golang.org/grpc"
@@ -19,7 +21,7 @@ var (
 type GrpcClient struct {
 	cc     *grpc.ClientConn
 	cli    *etcd.Client
-	method string
+	method etcd.Method
 }
 
 func Call(service, method string, in *Request, opt ...grpc.CallOption) (*Response, error) {
@@ -27,29 +29,25 @@ func Call(service, method string, in *Request, opt ...grpc.CallOption) (*Respons
 	if err != nil {
 		return nil, err
 	}
-	return client.Invoke(in, opt...)
+	return client.Invoke(in, nil, opt...)
 }
 
-func (c *GrpcClient) Invoke(in *Request, opts ...grpc.CallOption) (*Response, error) {
+func (c *GrpcClient) Invoke(in *Request, userInfo *auth.CustomClaims, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := c.cc.Invoke(ctx, c.method, in, out, opts...); err != nil {
+	if userInfo != nil {
+		md := metadata.New(map[string]string{"user": userInfo.Marshal()})
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+	if err := c.cc.Invoke(ctx, c.method.Path, in, out, opts...); err != nil {
 		return out, err
 	}
 	return out, nil
 }
 
-func (c *GrpcClient) InvokeWithToken(in *Request, userInfo string, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	md := metadata.New(map[string]string{"user": userInfo})
-	ctx = metadata.NewOutgoingContext(ctx, md)
-	if err := c.cc.Invoke(ctx, c.method, in, out, opts...); err != nil {
-		return out, err
-	}
-	return out, nil
+func (c *GrpcClient) Auth() bool {
+	return c.method.Auth
 }
 
 func (c *GrpcClient) Close() error {
@@ -59,13 +57,16 @@ func (c *GrpcClient) Close() error {
 	return nil
 }
 
-func (c *GrpcClient) getCallAddr(service, method string) (string, error) {
-	var addr string
-	addr = c.cli.GetSingle(fmt.Sprintf("%s.%s", service, method))
+func (c *GrpcClient) getCallAddr(service, method string) (etcd.Method, error) {
+	var md etcd.Method
+	addr := c.cli.GetSingle(fmt.Sprintf("%s.%s", service, method))
 	if addr == "" {
-		return addr, MethodNotFound
+		return md, MethodNotFound
 	}
-	return addr, nil
+	if err := json.Unmarshal([]byte(addr), &md); err != nil {
+		return md, err
+	}
+	return md, nil
 }
 
 func NewGrpcClient(service, method string) (*GrpcClient, error) {

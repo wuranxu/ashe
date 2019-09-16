@@ -7,6 +7,7 @@ import (
 	"ashe/common"
 	"ashe/db"
 	"ashe/library/cache/etcd"
+	"ashe/library/conf"
 	nt "ashe/library/net"
 	"flag"
 	"google.golang.org/grpc"
@@ -25,18 +26,23 @@ const (
 var (
 	port    = flag.String("port", Port, "grpc endpoints")
 	service = flag.String("service", ServiceName, "grpc endpoints")
-	//conf    = flag.String("configPath", `../../config.json`, "config file path")
-	//conf = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
-	conf = flag.String("configPath", `G:\golang\ashe\config.json`, "config file path")
+	//config    = flag.String("configPath", `../../config.json`, "config file path")
+	//config = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
+	config = flag.String("configPath", `G:\golang\ashe\config.json`, "config file path")
 )
 
 func main() {
 	flag.Parse()
-	common.Init(*conf)
+	common.Init(*config)
 	models.Conn = db.Init(models.Tables)
 	lis, err := net.Listen("tcp", *port)
 	if err != nil {
 		log.Fatal("服务挂壁了, error: ", err)
+	}
+	var yamlConfig common.YamlConfig
+	if err := conf.ParseYaml(`G:\golang\ashe\app\user\service.yaml`, &yamlConfig); err != nil {
+	//if err := conf.ParseYaml(`./service.yaml`, &yamlConfig); err != nil {
+		log.Fatal(err)
 	}
 	defer lis.Close()
 
@@ -50,7 +56,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := cli.RegisterApi(*service, &api.UserApi{}); err != nil {
+	if err := cli.RegisterApi(*service, &api.UserApi{}, yamlConfig); err != nil {
 		panic(err)
 	}
 	ch := make(chan os.Signal, 1)

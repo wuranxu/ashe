@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	sp "github.com/bitly/go-simplejson"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
 var (
 	ConfigError = errors.New("config is not found")
 )
-
 
 type SqlConfig struct {
 	Name     string `json:"name"`
@@ -20,6 +20,7 @@ type SqlConfig struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Timeout  uint   `json:"timeout"`
+	LogMode  bool   `json:"log_mode"`
 }
 
 func ParseConfig(filepath string, object interface{}, env string) error {
@@ -43,4 +44,12 @@ func ParseConfig(filepath string, object interface{}, env string) error {
 	}
 	err = json.Unmarshal(data, object)
 	return err
+}
+
+func ParseYaml(filepath string, out interface{}) error {
+	data, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(data, out)
 }

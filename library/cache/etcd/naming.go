@@ -1,9 +1,11 @@
 package etcd
 
 import (
+	"ashe/common"
 	"context"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
+	"log"
 	"reflect"
 	"time"
 )
@@ -52,11 +54,17 @@ func (cl *Client) UnRegister(name, addr string) error {
 	return nil
 }
 
-func (cl *Client) RegisterApi(name string, data interface{}) error {
+// 传入yaml配置
+func (cl *Client) RegisterApi(name string, data interface{}, config common.YamlConfig) error {
 	inf := reflect.ValueOf(data)
 	for i := 0; i < inf.NumMethod(); i++ {
 		methodName := inf.Type().Method(i).Name
-		err := RegisterMethod(cl, name, methodName)
+		md, ok := config.Method[methodName]
+		if !ok {
+			// 说明配置文件没有包含此方法
+			log.Fatal("注册Api失败, service.yaml文件未包含此方法: ", methodName)
+		}
+		err := RegisterMethod(cl, name, methodName, md.Auth)
 		if err != nil {
 			return err
 		}

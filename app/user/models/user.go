@@ -69,13 +69,13 @@ func LoginVerify(username, password string) (*AsheUser, string, error) {
 	return &user, token, err
 }
 
-func (u *AsheUser) AsheUserJson() interface{}{
+func (u *AsheUser) AsheUserJson() interface{} {
 	return map[string]interface{}{
-		"nickname": u.Nickname,
-		"email": u.Email,
-		"last_login_ip": u.LastLoginIp,
+		"nickname":        u.Nickname,
+		"email":           u.Email,
+		"last_login_ip":   u.LastLoginIp,
 		"last_login_time": u.LastLoginTime,
-		"user_id": u.ID,
+		"user_id":         u.ID,
 	}
 }
 

@@ -123,6 +123,10 @@ func Auth(handler func(ctx iris.Context, userInfo *CustomClaims)) iris.Handler {
 	}
 }
 
+func Authrozation(ctx iris.Context) (*CustomClaims, error) {
+	return getUserInfo(ctx)
+}
+
 func AuthMail(handler func(ctx iris.Context, email string, userId int)) iris.Handler {
 	return func(ctx iris.Context) {
 		claims, err := getUserInfo(ctx)

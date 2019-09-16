@@ -1,0 +1,14 @@
+version: 1.0
+service: cronjob
+port:  12188
+method:
+  Add:
+    auth: true
+  Del:
+    auth: true
+  List:
+    auth: true
+  Sync:
+    auth: false
+  TestAssert:
+    auth: false

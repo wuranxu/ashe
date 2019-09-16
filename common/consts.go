@@ -11,7 +11,7 @@ import (
 
 var (
 	Conf = new(Config)
-	Env = "dev"
+	Env  = "dev"
 )
 
 type EtcdConfig struct {
@@ -24,6 +24,17 @@ type Config struct {
 	Database conf.SqlConfig     `json:"database"`
 	Redis    redis.RedisCliInfo `json:"redis"`
 	Scheme   string             `json:"scheme"`
+}
+
+type YamlConfig struct {
+	Service string        `yaml:"service"`
+	Version string        `yaml:"version"`
+	Port    int           `yaml:"port"`
+	Method  map[string]Md `yaml:"method"`
+}
+
+type Md struct {
+	Auth bool `yaml:"auth"`
 }
 
 func Init(file string) {

@@ -5,11 +5,9 @@ import (
 	"ashe/library/cache/redis"
 	"encoding/json"
 	"fmt"
-	rds "github.com/gomodule/redigo/redis"
+	rds "github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
-	"log"
 	"sort"
-	"sync"
 	"time"
 )
 
@@ -19,23 +17,17 @@ const (
 )
 
 var (
-	JobShouldNotNull = exp.ErrString("job不能为空")
 	PageSizeTooLong  = exp.ErrString(fmt.Sprintf("任务列表pageSize不能超过%d条", MaxPageSize))
 	PageOutOfRange   = exp.ErrString("job页数超出范围")
 	PageError        = exp.ErrString("page/pageSize必须大于0")
 )
 
 var (
-	Pool *rds.Pool
+	Pool *rds.Client
 )
 
 func InitRedisConnection(cfg redis.RedisCliInfo) {
-	var once sync.Once
-	once.Do(func() {
-		if Pool = redis.NewCliPool(cfg); Pool == nil {
-			log.Fatalf("redis连接失败")
-		}
-	})
+	Pool = redis.NewClient(cfg)
 }
 
 type Job struct {
@@ -68,14 +60,11 @@ func (j sortJob) Less(x, y int) bool {
 
 // single
 func SetJobToRedis(j *Job) error {
-	conn := Pool.Get()
-	defer conn.Close()
 	result, err := json.Marshal(j)
 	if err != nil {
 		return err
 	}
-	_, err = rds.String(conn.Do("SET", fmt.Sprintf(`%s:%d`, JobPrefix, j.ID), result))
-	if err != nil {
+	if err = Pool.Set(fmt.Sprintf(`%s:%d`, JobPrefix, j.ID), result, 5 * time.Minute).Err(); err != nil {
 		return err
 	}
 	return nil
@@ -83,10 +72,7 @@ func SetJobToRedis(j *Job) error {
 
 // delete job
 func DelJobFromRedis(id uint) error {
-	conn := Pool.Get()
-	defer conn.Close()
-	_, err := rds.Bool(conn.Do("DEL", fmt.Sprintf(`%s:%d`, JobPrefix, id)))
-	if err != nil {
+	if err := Pool.Del(fmt.Sprintf(`%s:%d`, JobPrefix, id)).Err(); err != nil {
 		return err
 	}
 	return nil
@@ -94,8 +80,6 @@ func DelJobFromRedis(id uint) error {
 
 // batch set
 func SetBatchJob(job []*Job) (err error) {
-	conn := Pool.Get()
-	defer conn.Close()
 	for _, j := range job {
 		if err = SetJobToRedis(j); err != nil {
 			return
@@ -105,9 +89,7 @@ func SetBatchJob(job []*Job) (err error) {
 }
 
 func GetJobFromRedis(id int) (*Job, error) {
-	conn := Pool.Get()
-	defer conn.Close()
-	result, err := rds.String(conn.Do("GET", fmt.Sprintf(`%s:%d`, JobPrefix, id)))
+	result, err := Pool.Get(fmt.Sprintf(`%s:%d`, JobPrefix, id)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +106,8 @@ func parseJob(result string) (*Job, error) {
 }
 
 // 获取所有job keys
-func getJobKeys(conn rds.Conn) ([]string, int, error) {
-	res, err := rds.Strings(conn.Do("KEYS", fmt.Sprintf(`%s:*`, JobPrefix)))
+func getJobKeys() ([]string, int, error) {
+	res, err := Pool.Keys(fmt.Sprintf(`%s:*`, JobPrefix)).Result()
 	if err != nil {
 		return res, 0, err
 	}
@@ -149,53 +131,52 @@ func getIndex(page, pageSize, total int) (int, int, error) {
 	return start, end, nil
 }
 
-// TO []interface{}
-func toInterface(data []string) []interface{} {
-	result := make([]interface{}, 0)
-	for _, d := range data {
-		result = append(result, d)
-	}
-	return result
-}
+//// TO []interface{}
+//func toInterface(data []string) []interface{} {
+//	result := make([]interface{}, 0)
+//	for _, d := range data {
+//		result = append(result, d)
+//	}
+//	return result
+//}
 
 // 删除缓存所有的job
 func DeleteAllJobs() error {
-	conn := Pool.Get()
-	defer conn.Close()
-	var err error
-	keys, _, err := getJobKeys(conn)
+	keys, _, err := getJobKeys()
 	if err != nil {
 		return err
 	}
-	for _, k := range keys {
-		if _, err = conn.Do("DEL", k); err != nil {
-			logrus.Errorf("删除redis key失败, key: %v, error: %v", k, err)
-			continue
-		}
+	if len(keys) == 0 {
+		return nil
 	}
-	return err
+	if err := Pool.Del(keys...).Err(); err != nil {
+		logrus.Errorf("删除redis key失败, error: %v", err)
+		return err
+	}
+	return nil
 }
 
 // 获取job列表 from redis
 func GetJobList(page, pageSize int) (sortJob, int, error) {
-	conn := Pool.Get()
-	defer conn.Close()
 	result := make(sortJob, 0)
 	if pageSize > MaxPageSize {
 		return result, 0, PageSizeTooLong
 	}
-	keys, total, err := getJobKeys(conn)
+	keys, total, err := getJobKeys()
 	if err != nil {
 		return result, total, err
+	}
+	if total == 0 {
+		return result, total, nil
 	}
 	start, end, err := getIndex(page, pageSize, len(keys))
 	if err != nil {
 		return result, total, err
 	}
-	jobs, err := rds.Strings(conn.Do("MGET", toInterface(keys)...))
+	jobs, err := Pool.MGet(keys...).Result()
 	for _, j := range jobs {
 		var jb *Job
-		if jb, err = parseJob(j); err == nil {
+		if jb, err = parseJob(j.(string)); err == nil {
 			result = append(result, jb)
 			continue
 		}

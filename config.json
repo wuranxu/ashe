@@ -7,7 +7,8 @@
       "database": "ashe",
       "username": "root",
       "password": "ashetest",
-      "timeout": 3000
+      "timeout": 3000,
+      "log_mode": true
     },
     "etcd": {
       "endpoints": [
@@ -22,7 +23,8 @@
       "db": 1,
       "max_idle": 50,
       "max_active": 50,
-      "idle_timeout": 5000
+      "pool_size": 100,
+      "idle_timeout": 5
     },
     "scheme": "ashe"
   },
@@ -34,7 +36,8 @@
       "database": "ashe",
       "username": "root",
       "password": "ashetest",
-      "timeout": 3000
+      "timeout": 3000,
+      "log_mode": false
     },
     "etcd": {
       "endpoints": [
@@ -48,8 +51,9 @@
       "port": 6379,
       "db": 1,
       "max_idle": 50,
+      "pool_size": 100,
       "max_active": 50,
-      "idle_timeout": 5000
+      "idle_timeout": 5
     }
   }
 }

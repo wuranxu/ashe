@@ -70,6 +70,12 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 		res.Msg, res.Code = err.Error(), code.PageError
 		return res, nil
 	}
+	if pg.Page == 0 {
+		pg.Page = 1
+	}
+	if pg.PageSize == 0 {
+		pg.PageSize = 8
+	}
 	jbs, total, err := models.GetJobList(pg.Page, pg.PageSize)
 	if err != nil {
 		res.Msg, res.Code = err.Error(), code.PageError
@@ -87,7 +93,7 @@ func (j *Job) TestAssert(ctx context.Context, in *protocol.Request) (*protocol.R
 
 func (j *Job) Sync(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
-	if err := models.Sync(); err != nil {
+	if _, err := models.Sync(); err != nil {
 		res.Code, res.Msg = code.SyncError, err.Error()
 		return res, nil
 	}

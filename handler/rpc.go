@@ -6,12 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/kataras/iris"
-	"strings"
+)
+
+const (
+	ArgsParseFailed = 102 + iota
+	LoginRequired 
 )
 
 var (
 	ParamsError        = errors.New("抱歉, 网络似乎开小差了")
-	ServiceMethodError = errors.New("抱歉, 网络似乎开小差了")
+	//ServiceMethodError = errors.New("抱歉, 网络似乎开小差了")
 )
 
 type Response interface {
@@ -66,19 +70,10 @@ func parse(params map[string]interface{}) (service string, err error) {
 	return service, nil
 }
 
-func split(action string) (service string, method string, err error) {
-	ls := strings.Split(action, ".")
-	if len(ls) != 2 {
-		err = ServiceMethodError
-		return
-	}
-	service, method, err = ls[0], ls[1], nil
-	return
-}
-
 func CallRpc(ctx iris.Context) {
 	result := new(res)
 	params := make(Params)
+	var userInfo *auth.CustomClaims
 	if err := ctx.ReadJSON(&params); err != nil {
 		result.Code = 40000
 		result.Msg = "抱歉，网络似乎开小差了"
@@ -98,46 +93,21 @@ func CallRpc(ctx iris.Context) {
 	params["remote_ip"] = ctx.RemoteAddr()
 	requestData, err := params.Marshal()
 	if err != nil {
+		result.Code = ArgsParseFailed
 		result.Msg = err.Error()
 		response(ctx, result)
 		return
 	}
-	resp, err := client.Invoke(requestData)
-	if err != nil {
-		result.Msg = err.Error()
-		response(ctx, result)
-		return
+	if client.Auth() {
+		// 需要解析token
+		if userInfo, err = auth.Authrozation(ctx); err != nil {
+			result.Code = LoginRequired
+			result.Msg = err.Error()
+			response(ctx, result)
+			return
+		}
 	}
-	response(ctx, result.toApi(*resp))
-}
-
-func CallRpcWithAuth(ctx iris.Context, user *auth.CustomClaims) {
-	result := new(res)
-	params := make(Params)
-	if err := ctx.ReadJSON(&params); err != nil {
-		result.Code = 40000
-		result.Msg = "抱歉，网络似乎开小差了"
-		response(ctx, result)
-		return
-	}
-	service := ctx.Params().Get("service")
-	method := ctx.Params().Get("method")
-	client, err := protocol.NewGrpcClient(service, method)
-	defer client.Close()
-	if err != nil {
-		result.Msg = err.Error()
-		response(ctx, result)
-		return
-	}
-	// 新增请求ip地址
-	params["remote_ip"] = ctx.RemoteAddr()
-	requestData, err := params.Marshal()
-	if err != nil {
-		result.Msg = err.Error()
-		response(ctx, result)
-		return
-	}
-	resp, err := client.InvokeWithToken(requestData, user.Marshal())
+	resp, err := client.Invoke(requestData, userInfo)
 	if err != nil {
 		result.Msg = err.Error()
 		response(ctx, result)

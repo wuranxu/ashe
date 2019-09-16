@@ -22,8 +22,6 @@ func (a *AsheJob) TableName() string { return "ashe_job" }
 
 // 同步数据到redis
 func (a *AsheJob) SyncToRedis() error {
-	conn := cronjob.Pool.Get()
-	defer conn.Close()
 	return cronjob.SetJobToRedis(&a.Job)
 }
 
@@ -33,27 +31,28 @@ func deleteAllJob() error {
 }
 
 // 同步缓存
-func Sync() error {
+func Sync() ([]AsheJob, error) {
+	jobs := make([]AsheJob, 0)
 	if err := deleteAllJob(); err != nil {
-		return err
+		return jobs, err
 	}
 	jobs, err := getAllJobFromDb()
 	if err != nil {
-		return err
+		return jobs, err
 	}
 	for _, j := range jobs {
 		if err = cronjob.SetJobToRedis(&j.Job); err != nil {
 			continue
 		}
 	}
-	return err
+	return jobs, err
 }
 
 // 获取所有job
 func getAllJobFromDb() ([]AsheJob, error) {
 	// 从db读取job
 	jobs := make([]AsheJob, 0, 100)
-	if err := Conn.Find(&jobs, `deleted = false`).Error; err != nil {
+	if err := Conn.Order("create_time desc").Find(&jobs, `deleted = false`).Error; err != nil {
 		return jobs, err
 	}
 	return jobs, nil
@@ -62,24 +61,26 @@ func getAllJobFromDb() ([]AsheJob, error) {
 // 获取job列表
 func GetJobList(page, pageSize int) ([]*cronjob.Job, int, error) {
 	jobs, total, err := cronjob.GetJobList(page, pageSize)
-	if err == cronjob.PageOutOfRange || err == cronjob.PageSizeTooLong {
-		// 并非redis故障
+	if err != nil {
 		return jobs, total, err
 	}
-	if err == nil {
-		return jobs, total, nil
+	if total == 0 {
+		// 如果没有获取到则从数据库同步一次
+		asheJobs, err := Sync()
+		if err != nil {
+			return jobs, total, err
+		}
+		return transJobs(asheJobs), len(asheJobs), err
 	}
-	// 从db读取job
-	asheJobs := make([]AsheJob, 0, 10)
-	total, err = Conn.FindPaginationAndOrder(page, pageSize, `create_time desc`, &asheJobs, `deleted = false`)
-	return transJobs(asheJobs), total, err
+	return jobs, total, nil
 }
 
 // 转换job
 func transJobs(jbs []AsheJob) []*cronjob.Job {
 	result := make([]*cronjob.Job, 0, len(jbs))
 	for _, j := range jbs {
-		result = append(result, &j.Job)
+		item := j.Job
+		result = append(result, &item)
 	}
 	return result
 }

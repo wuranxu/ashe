@@ -1,0 +1,10 @@
+version: 1.0
+service: user
+port:  12788
+method:
+  Register:
+    auth: true
+  Login:
+    auth: false
+  Edit:
+    auth: true

@@ -16,8 +16,6 @@ func Init(tables []interface{}) *database.Cursor{
 			conn.AutoMigrate(data)
 		}
 	}
-	if common.Env == "dev" {
-		conn.LogMode(true)
-	}
+	conn.LogMode(common.Conf.Database.LogMode)
 	return conn
 }
