@@ -2,22 +2,23 @@ package etcd
 
 import (
 	"ashe/common"
+	"ashe/library/logging"
 	"context"
-	"fmt"
 	v3 "github.com/coreos/etcd/clientv3"
 	"sync"
 	"time"
 )
 
 type Client struct {
-	kv  v3.KV
-	cli *v3.Client
+	kv     v3.KV
+	cli    *v3.Client
 	scheme string
 }
 
 var (
 	once       sync.Once
 	EtcdClient *Client
+	log        = logging.NewLog("etcd")
 )
 
 func (cl *Client) Kv() v3.KV {
@@ -34,7 +35,7 @@ func (cl *Client) Set(key, value string) bool {
 		return false
 	}
 	if res.PrevKv != nil {
-		fmt.Println("设置key:", string(res.PrevKv.Key), "成功, 上一个值为", string(res.PrevKv.Value))
+		log.Infoln("设置key:", string(res.PrevKv.Key), "成功, 上一个值为", string(res.PrevKv.Value))
 	}
 	return true
 }
@@ -76,7 +77,7 @@ func NewClient(cfg common.EtcdConfig) (*Client, error) {
 			cli, err = v3.New(v3.Config{Endpoints: cfg.Endpoints, DialTimeout: time.Second * cfg.DialTimeout})
 			if err != nil {
 				cli = nil
-				panic(err)
+				log.Panic("连接etcd失败, error: ", err)
 			}
 			kv = v3.NewKV(cli)
 

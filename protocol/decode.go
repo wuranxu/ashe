@@ -5,28 +5,64 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/golang/protobuf/ptypes/any"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
 	UserInfoNotFound   = errors.New("未获取到用户信息")
 	UserInfoParseError = errors.New("用户信息解析失败")
+	DecodeError        = "解析返回数据失败"
 )
 
 func Unmarshal(in *Request, data interface{}) error {
-	if err := json.Unmarshal([]byte(in.RequestJson), data); err != nil {
+	if err := json.Unmarshal(in.RequestJson.GetValue(), data); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Marshal(out *Response, data interface{}) {
+func MarshalRequest(out *Request, data interface{}) error {
+	var result any.Any
+	var msg proto.Message
 	bt, err := json.Marshal(data)
 	if err != nil {
-		out.ResultJson = ""
+		return err
+	}
+	err = proto.Unmarshal(bt, msg)
+	if err != nil {
+		return err
+	}
+	err = result.MarshalFrom(msg)
+	if err != nil {
+		return err
+	}
+	out.RequestJson = &result
+	return nil
+}
+
+func Marshal(out *Response, data interface{}) {
+	var result any.Any
+	var msg proto.Message
+	bt, err := json.Marshal(data)
+	if err != nil {
+		out.ResultJson = nil
 		return
 	}
-	out.ResultJson = string(bt)
+	err = proto.Unmarshal(bt, msg)
+	if err != nil {
+		out.ResultJson = nil
+		out.Msg = DecodeError
+		return
+	}
+	err = result.MarshalFrom(msg)
+	if err != nil {
+		out.ResultJson = nil
+		out.Msg = DecodeError
+		return
+	}
+	out.ResultJson = &result
 }
 
 func GetHeader(ctx context.Context) map[string][]string {

@@ -2,17 +2,17 @@
   "dev": {
     "database": {
       "name": "mysql",
-      "host": "106.13.173.14",
+      "host": "47.112.32.195",
       "port": 3306,
-      "database": "ashe",
+      "database": "eagle",
       "username": "root",
-      "password": "ashetest",
+      "password": "anrenear@33",
       "timeout": 3000,
       "log_mode": true
     },
     "etcd": {
       "endpoints": [
-        "106.13.173.14:2371"
+        "218.95.37.205:2379"
       ],
       "dial-timeout": 10
     },
@@ -41,7 +41,7 @@
     },
     "etcd": {
       "endpoints": [
-        "127.0.0.1:2371"
+        "218.95.37.205:2371"
       ],
       "dial-timeout": 2000
     },

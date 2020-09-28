@@ -19,7 +19,7 @@ func NewResolver(client *Client) re.Builder {
 	return &resolver{client: client, scheme: common.Conf.Scheme}
 }
 
-func (r *resolver) Build(target re.Target, cc re.ClientConn, opt re.BuildOption) (re.Resolver, error) {
+func (r *resolver) Build(target re.Target, cc re.ClientConn, opt re.BuildOptions) (re.Resolver, error) {
 	r.cc = cc
 	go r.watch("/" + target.Scheme + "/" + target.Endpoint + "/")
 	return r, nil
@@ -29,7 +29,7 @@ func (r *resolver) Scheme() string {
 	return r.scheme
 }
 
-func (r *resolver) ResolveNow(rn re.ResolveNowOption) {
+func (r *resolver) ResolveNow(rn re.ResolveNowOptions) {
 
 }
 

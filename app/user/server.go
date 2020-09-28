@@ -27,8 +27,8 @@ var (
 	port    = flag.String("port", Port, "grpc endpoints")
 	service = flag.String("service", ServiceName, "grpc endpoints")
 	//config    = flag.String("configPath", `../../config.json`, "config file path")
-	//config = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
-	config = flag.String("configPath", `G:\golang\ashe\config.json`, "config file path")
+	config = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
+	//config = flag.String("configPath", `G:\golang\ashe\config.json`, "config file path")
 )
 
 func main() {
@@ -41,13 +41,17 @@ func main() {
 	}
 	var yamlConfig common.YamlConfig
 	if err := conf.ParseYaml(`G:\golang\ashe\app\user\service.yaml`, &yamlConfig); err != nil {
-	//if err := conf.ParseYaml(`./service.yaml`, &yamlConfig); err != nil {
+		//if err := conf.ParseYaml(`./service.yaml`, &yamlConfig); err != nil {
 		log.Fatal(err)
 	}
 	defer lis.Close()
 
 	s := grpc.NewServer()
-	pb.RegisterUserServer(s, &api.UserApi{})
+	pb.RegisterUserService(s, &pb.UserService{
+		Register: api.Register,
+		Login:    api.Login,
+		Edit:     api.Edit,
+	})
 	cli, err := etcd.NewClient(common.Conf.Etcd)
 	if err != nil {
 		panic(err)

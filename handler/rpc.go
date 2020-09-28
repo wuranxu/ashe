@@ -9,12 +9,14 @@ import (
 )
 
 const (
-	ArgsParseFailed = 102 + iota
-	LoginRequired 
+	ArgsParseFailed = 10002 + iota
+	LoginRequired
+	MethodNotFound
+	RemoteCallFailed
 )
 
 var (
-	ParamsError        = errors.New("抱歉, 网络似乎开小差了")
+	ParamsError = errors.New("抱歉, 网络似乎开小差了")
 	//ServiceMethodError = errors.New("抱歉, 网络似乎开小差了")
 )
 
@@ -33,23 +35,21 @@ func (s *res) toJson() []byte {
 	return result
 }
 
-func (s *res) toApi(resp protocol.Response) *res {
+func (s *res) toApi(resp *protocol.Response) *res {
 	s.Code, s.Msg, s.Data = resp.Code, resp.Msg, resp.ResultJson
-	var data interface{}
-	if err := json.Unmarshal([]byte(resp.ResultJson), &data); err == nil {
-		s.Data = data
-	}
+	//var data interface{}
+	//if err := json.Unmarshal([]byte(resp.ResultJson), &data); err == nil {
+	//	s.Data = data
+	//}
 	return s
 }
 
 type Params map[string]interface{}
 
 func (p *Params) Marshal() (*protocol.Request, error) {
-	bt, err := json.Marshal(p)
-	if err != nil {
-		return nil, err
-	}
-	return &protocol.Request{RequestJson: string(bt)}, nil
+	out := &protocol.Request{}
+	err := protocol.MarshalRequest(out, p)
+	return out, err
 }
 
 func response(ctx iris.Context, r *res) {
@@ -86,6 +86,7 @@ func CallRpc(ctx iris.Context) {
 	defer client.Close()
 	if err != nil {
 		result.Msg = err.Error()
+		result.Code = MethodNotFound
 		response(ctx, result)
 		return
 	}
@@ -109,9 +110,10 @@ func CallRpc(ctx iris.Context) {
 	}
 	resp, err := client.Invoke(requestData, userInfo)
 	if err != nil {
+		result.Code = RemoteCallFailed
 		result.Msg = err.Error()
 		response(ctx, result)
 		return
 	}
-	response(ctx, result.toApi(*resp))
+	response(ctx, result.toApi(resp))
 }

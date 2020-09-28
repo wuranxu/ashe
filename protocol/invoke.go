@@ -4,6 +4,7 @@ import (
 	"ashe/common"
 	"ashe/library/auth"
 	"ashe/library/cache/etcd"
+	"ashe/library/logging"
 	"context"
 	"encoding/json"
 	"errors"
@@ -16,6 +17,7 @@ import (
 
 var (
 	MethodNotFound = errors.New("没有找到对应的方法，请检查您的参数")
+	log            = logging.NewLog("invoke")
 )
 
 type GrpcClient struct {
@@ -61,6 +63,7 @@ func (c *GrpcClient) getCallAddr(service, method string) (etcd.Method, error) {
 	var md etcd.Method
 	addr := c.cli.GetSingle(fmt.Sprintf("%s.%s", service, method))
 	if addr == "" {
+		log.Infof("服务:[%s]->方法:[%s]未找到", service, method)
 		return md, MethodNotFound
 	}
 	if err := json.Unmarshal([]byte(addr), &md); err != nil {

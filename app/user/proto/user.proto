@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "ashe/protocol/protocol.proto";
 
+option go_package = "ashe/app/user/proto";
+
 
 service user {
     // 注册用户

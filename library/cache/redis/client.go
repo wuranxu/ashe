@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"fmt"
 	rds "github.com/go-redis/redis"
 	"log"
 	"sync"
@@ -28,4 +29,18 @@ func NewClient(cfg RedisCliInfo) *rds.Client {
 		})
 	}
 	return Pool
+}
+
+func NewClusterClient() error {
+	client := rds.NewClusterClient(&rds.ClusterOptions{
+		Addrs: []string{"106.13.173.14:7000", "106.13.173.14:7001", "106.13.173.14:7002",
+			"106.13.173.14:7004", "106.13.173.14:7005", "106.13.173.14:7003",
+		},
+	})
+	if err := client.Ping().Err(); err != nil {
+		return err
+	}
+	fmt.Println(client.Set("sp", "nmsl", 0).Err())
+	fmt.Println(client.Get("sp").Result())
+	return nil
 }

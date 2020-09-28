@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
-	"log"
 	"reflect"
 	"time"
 )
@@ -17,10 +16,10 @@ func (cl *Client) RegisterService(name, addr string, ttl int64) error {
 		for {
 			getResp, err := cl.cli.Get(context.Background(), "/"+cl.scheme+"/"+name+"/"+addr)
 			if err != nil {
-				fmt.Println(err)
+				log.Errorf("获取服务信息失败, error: %s", err)
 			} else if getResp.Count == 0 {
 				if err = cl.withAlive(name, addr, ttl); err != nil {
-					fmt.Println(err)
+					log.Errorf("注册服务失败, error: %s", err)
 				}
 			} else {
 			}

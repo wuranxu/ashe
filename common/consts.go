@@ -3,8 +3,7 @@ package common
 import (
 	"ashe/library/cache/redis"
 	"ashe/library/conf"
-	"fmt"
-	"log"
+	"ashe/library/logging"
 	"sync"
 	"time"
 )
@@ -12,6 +11,7 @@ import (
 var (
 	Conf = new(Config)
 	Env  = "dev"
+	log  = logging.NewLog("config")
 )
 
 type EtcdConfig struct {
@@ -38,7 +38,7 @@ type Md struct {
 }
 
 func Init(file string) {
-	fmt.Println("本机环境: ", Env)
+	log.Infoln("本机环境: ", Env)
 	var (
 		once sync.Once
 		err  error

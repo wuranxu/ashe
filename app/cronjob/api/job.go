@@ -6,14 +6,13 @@ import (
 	"ashe/library/check"
 	"ashe/protocol"
 	"context"
-	"encoding/json"
 )
 
 type Job struct {
 }
 
 func (j *Job) unmarshalData(in *protocol.Request, data interface{}) error {
-	if err := json.Unmarshal([]byte(in.RequestJson), data); err != nil {
+	if err := protocol.Unmarshal(in, data); err != nil {
 		return err
 	}
 	return nil
@@ -81,13 +80,13 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 		res.Msg, res.Code = err.Error(), code.PageError
 		return res, nil
 	}
-	res.ResultJson, res.Msg = getRes(jbs, total), code.GetListSuccess
+	protocol.Marshal(res, getRes(jbs, total))
+	res.Msg = code.GetListSuccess
 	return res, nil
 }
 
 func (j *Job) TestAssert(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	return protocol.Call("assert", "equal", &protocol.Request{
-		RequestJson: `{"exp": 2, "act": 3, "msg": "呀屎啦你"}`,
 	})
 }
 
@@ -108,10 +107,9 @@ func (j *Job) Sync(ctx context.Context, in *protocol.Request) (*protocol.Respons
 //
 //}
 
-func getRes(jbs interface{}, total int) string {
+func getRes(jbs interface{}, total int) map[string]interface{} {
 	mp := map[string]interface{}{
 		"jobs": jbs, "total": total,
 	}
-	b, _ := json.Marshal(mp)
-	return string(b)
+	return mp
 }

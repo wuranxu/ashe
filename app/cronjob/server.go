@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ServiceName = "cronjob"
+	ServiceName = "user"
 	Port        = ":12688"
 )
 

@@ -7,7 +7,6 @@ import (
 	"ashe/library/check"
 	"ashe/protocol"
 	"context"
-	"fmt"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -38,7 +37,7 @@ type EditForm struct {
 	Email    string `json:"email" validate:"gt=0"`
 }
 
-func (u *UserApi) Register(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+func Register(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	usr := new(models.AsheUser)
 	res := new(protocol.Response)
 	if err := protocol.Unmarshal(in, usr); err != nil {
@@ -61,10 +60,9 @@ func (u *UserApi) Register(ctx context.Context, in *protocol.Request) (*protocol
 	return res, nil
 }
 
-func (u *UserApi) Login(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+func Login(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
-	md, b := metadata.FromIncomingContext(ctx)
-	fmt.Println(md, b)
+	metadata.FromIncomingContext(ctx)
 	var form LoginForm
 	if err := protocol.Unmarshal(in, &form); err != nil {
 		res.Msg = ParamsInValid
@@ -92,7 +90,7 @@ func (u *UserApi) Login(ctx context.Context, in *protocol.Request) (*protocol.Re
 	return res, nil
 }
 
-func (u *UserApi) Edit(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+func Edit(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
 	user, err := protocol.FetchUserInfo(ctx)
 	if err != nil {

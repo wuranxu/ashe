@@ -2,11 +2,11 @@
   "dev": {
     "database": {
       "name": "mysql",
-      "host": "127.0.0.1",
+      "host": "47.112.32.195",
       "port": 3306,
-      "database": "test",
+      "database": "eagle",
       "username": "root",
-      "password": "zhang@2018",
+      "password": "anrenear@33",
       "timeout": 3000
     },
     "etcd": {

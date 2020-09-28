@@ -22,7 +22,7 @@ func RegisterMethod(client *Client, service, method string, auth bool) error {
 	}
 	_, err := client.cli.Put(client.cli.Ctx(), fmt.Sprintf("%s.%s", service, method), md.Marshal())
 	if err != nil {
-		fmt.Println("注册方法失败, error: ", err)
+		log.Errorf("注册方法失败, error: ", err)
 		return err
 	}
 	return nil

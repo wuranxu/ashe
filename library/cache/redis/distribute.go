@@ -19,7 +19,7 @@ var (
 func DistributeLock(cfg RedisCliInfo, taskId int) (*redsync.Mutex, error) {
 	pool, err := GetPool(cfg)
 	if err != nil || pool == nil {
-		log.Errorln("获取redis配置失败, error: %v", err)
+		log.Errorln("获取redis配置失败, error: ", err)
 		return nil, RedisConnError
 	}
 	poolList := []redsync.Pool{redsync.Pool(pool)}
