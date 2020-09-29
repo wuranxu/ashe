@@ -48,3 +48,5 @@ time="2020-09-24T16:34:16+08:00" level=info msg="本机环境:  dev"
 [INFO] [2020-09-29 19:51:49.572] [consts.go:41][GOID:1] 本机环境:  dev
 [INFO] [2020-09-29 19:52:04.524] [consts.go:41][GOID:1] 本机环境:  dev
 [INFO] [2020-09-29 19:57:35.852] [consts.go:41][GOID:1] 本机环境:  dev
+[INFO] [2020-09-29 20:43:56.396] [consts.go:41][GOID:1] 本机环境:  dev
+[INFO] [2020-09-29 20:44:23.073] [consts.go:41][GOID:1] 本机环境:  dev

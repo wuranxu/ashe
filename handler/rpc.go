@@ -38,19 +38,10 @@ type res struct {
 }
 
 func (s *res) Fill(code int32, msg interface{}, data ...interface{}) *res {
+	s.SetMsg(msg).Code = code
 	if len(data) > 0 {
-		return s.SetCode(code).SetMsg(msg).SetData(data[0])
+		s.Data = data[0]
 	}
-	return s.SetCode(code).SetMsg(msg)
-}
-
-func (s *res) SetCode(code int32) *res {
-	s.Code = code
-	return s
-}
-
-func (s *res) SetData(data interface{}) *res {
-	s.Data = data
 	return s
 }
 

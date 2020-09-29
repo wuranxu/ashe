@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -13,6 +14,28 @@ var (
 	UserInfoParseError = errors.New("用户信息解析失败")
 	DecodeError        = "解析返回数据失败"
 )
+
+func (m *Response) Fill(code int32, msg interface{}, data ...interface{}) *Response {
+	m.Code = code
+	if msg != nil {
+		switch msg.(type) {
+		case string:
+			m.Msg = msg.(string)
+		case error:
+			m.Msg = msg.(error).Error()
+		default:
+			m.Msg = fmt.Sprintf("%v", msg)
+		}
+	}
+	if len(data) > 0 {
+		bt, err := json.Marshal(data)
+		if err != nil {
+			m.Msg = err.Error()
+		}
+		m.ResultJson = bt
+	}
+	return m
+}
 
 func Unmarshal(in *Request, data interface{}) error {
 	if err := json.Unmarshal(in.RequestJson, data); err != nil {
@@ -47,6 +70,16 @@ func GetHeader(ctx context.Context) map[string][]string {
 		return nil
 	}
 	return md
+}
+
+func GetHeaderKey(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		if get := md.Get(key); len(get) > 0 {
+			return get[0]
+		}
+	}
+	return ""
 }
 
 func FetchUserInfo(ctx context.Context) (*auth.CustomClaims, error) {
