@@ -10,16 +10,19 @@ import (
 )
 
 const (
-	ArgsParseFailed = 10002 + iota
+	// 参数解析失败 10001
+	ArgsParseFailed = 10001 + iota
+	// 用户未登录 10002
 	LoginRequired
+	// 方法未找到 10003
 	MethodNotFound
+	// rpc调用失败 10004
 	RemoteCallFailed
+	// 服务出错 10005
 	IntervalServerError
 )
 
 var (
-	ParamsError = errors.New("抱歉, 网络似乎开小差了")
-	//ServiceMethodError = errors.New("抱歉, 网络似乎开小差了")
 	InnerError  = errors.New("系统内部错误")
 	SystemError = errors.New("抱歉, 网络似乎开小差了")
 )
@@ -32,11 +35,6 @@ type res struct {
 	Code int32       `json:"code"`
 	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
-}
-
-func (s *res) toJson() []byte {
-	result, _ := json.Marshal(s)
-	return result
 }
 
 func (s *res) Fill(code int32, msg interface{}, data ...interface{}) *res {
@@ -85,6 +83,7 @@ func response(ctx iris.Context, r *res) {
 	ctx.JSON(r)
 }
 
+// rpc调用接口
 func CallRpc(ctx iris.Context) {
 	result := new(res)
 	params := make(Params)
@@ -93,6 +92,7 @@ func CallRpc(ctx iris.Context) {
 		response(ctx, result.Fill(ArgsParseFailed, SystemError))
 		return
 	}
+	// 获取url中版本/APP/方法名(首字母小写, 与其他语言服务保持一致)
 	version := ctx.Params().Get("version")
 	service := ctx.Params().Get("service")
 	method := ctx.Params().Get("method")
@@ -102,12 +102,9 @@ func CallRpc(ctx iris.Context) {
 		response(ctx, result.Fill(MethodNotFound, err))
 		return
 	}
-	// 新增请求ip地址
 	requestData, err := params.Marshal()
 	if err != nil {
-		result.Code = ArgsParseFailed
-		result.Msg = err.Error()
-		response(ctx, result)
+		response(ctx, result.Fill(ArgsParseFailed, err))
 		return
 	}
 	if !client.NoAuth() {
