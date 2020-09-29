@@ -26,30 +26,23 @@ type GrpcClient struct {
 	method etcd.Method
 }
 
-func Call(service, method string, in *Request, opt ...grpc.CallOption) (*Response, error) {
-	client, err := NewGrpcClient(service, method)
-	if err != nil {
-		return nil, err
-	}
-	return client.Invoke(in, nil, opt...)
-}
-
-func (c *GrpcClient) Invoke(in *Request, userInfo *auth.CustomClaims, opts ...grpc.CallOption) (*Response, error) {
+func (c *GrpcClient) Invoke(in *Request, ip string, userInfo *auth.CustomClaims, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	md := metadata.New(map[string]string{"host": ip})
 	if userInfo != nil {
-		md := metadata.New(map[string]string{"user": userInfo.Marshal()})
-		ctx = metadata.NewOutgoingContext(ctx, md)
+		md.Append("user", userInfo.Marshal())
 	}
+	ctx = metadata.NewOutgoingContext(ctx, md)
 	if err := c.cc.Invoke(ctx, c.method.Path, in, out, opts...); err != nil {
 		return out, err
 	}
 	return out, nil
 }
 
-func (c *GrpcClient) Auth() bool {
-	return c.method.Auth
+func (c *GrpcClient) NoAuth() bool {
+	return c.method.NoAuth
 }
 
 func (c *GrpcClient) Close() error {
@@ -59,11 +52,11 @@ func (c *GrpcClient) Close() error {
 	return nil
 }
 
-func (c *GrpcClient) getCallAddr(service, method string) (etcd.Method, error) {
+func (c *GrpcClient) getCallAddr(version, service, method string) (etcd.Method, error) {
 	var md etcd.Method
-	addr := c.cli.GetSingle(fmt.Sprintf("%s.%s", service, method))
+	addr := c.cli.GetSingle(fmt.Sprintf("%s.%s.%s", version, service, method))
 	if addr == "" {
-		log.Infof("服务:[%s]->方法:[%s]未找到", service, method)
+		log.Infof("版本:[%s] 服务:[%s] 方法:[%s]未找到", version, service, method)
 		return md, MethodNotFound
 	}
 	if err := json.Unmarshal([]byte(addr), &md); err != nil {
@@ -72,7 +65,7 @@ func (c *GrpcClient) getCallAddr(service, method string) (etcd.Method, error) {
 	return md, nil
 }
 
-func NewGrpcClient(service, method string) (*GrpcClient, error) {
+func NewGrpcClient(version, service, method string) (*GrpcClient, error) {
 	cl, err := etcd.NewClient(common.Conf.Etcd)
 	if err != nil {
 		return nil, err
@@ -88,7 +81,7 @@ func NewGrpcClient(service, method string) (*GrpcClient, error) {
 		return nil, err
 	}
 	client := &GrpcClient{cli: cl, cc: conn}
-	if client.method, err = client.getCallAddr(service, method); err != nil {
+	if client.method, err = client.getCallAddr(version, service, method); err != nil {
 		return nil, err
 	}
 	return client, nil

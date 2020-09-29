@@ -5,8 +5,10 @@ import (
 	"ashe/app/user/utils"
 	"ashe/exception"
 	"ashe/library/check"
+	"ashe/library/logging"
 	"ashe/protocol"
 	"context"
+	"fmt"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -22,6 +24,8 @@ const (
 var (
 	ParamsInValid    = "非法json数据"
 	ParamsCheckError = exception.ErrString(ParamsInValid)
+
+	log = logging.NewLog("userService")
 )
 
 type UserApi struct {
@@ -37,7 +41,7 @@ type EditForm struct {
 	Email    string `json:"email" validate:"gt=0"`
 }
 
-func Register(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+func (*UserApi) Register(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	usr := new(models.AsheUser)
 	res := new(protocol.Response)
 	if err := protocol.Unmarshal(in, usr); err != nil {
@@ -60,7 +64,7 @@ func Register(ctx context.Context, in *protocol.Request) (*protocol.Response, er
 	return res, nil
 }
 
-func Login(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+func (*UserApi) Login(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
 	metadata.FromIncomingContext(ctx)
 	var form LoginForm
@@ -90,7 +94,7 @@ func Login(ctx context.Context, in *protocol.Request) (*protocol.Response, error
 	return res, nil
 }
 
-func Edit(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+func (*UserApi) Edit(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)
 	user, err := protocol.FetchUserInfo(ctx)
 	if err != nil {
@@ -116,5 +120,28 @@ func Edit(ctx context.Context, in *protocol.Request) (*protocol.Response, error)
 		return res, nil
 	}
 	res.Msg = "修改成功"
+	return res, nil
+}
+
+func (*UserApi) InsertUserLog(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
+	res := new(protocol.Response)
+	incomingContext, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Errorf("获取header失败")
+	}
+	fmt.Println(incomingContext.Get("host"))
+	data := new(models.TUserLog)
+	if err := protocol.Unmarshal(in, data); err != nil {
+		res.Code = ParamsError
+		res.Msg = ParamsInValid
+		return res, nil
+	}
+	if err := models.Insert(data); err != nil {
+		res.Msg = "失败"
+		res.Code = ParamsError
+	} else {
+		protocol.Marshal(res, data)
+		res.Msg = "修改成功"
+	}
 	return res, nil
 }

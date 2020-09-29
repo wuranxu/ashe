@@ -1,10 +1,9 @@
-version: 1.0
+version: v1
 service: user
-port:  12788
+port:  12798
 method:
   Register:
-    auth: true
   Login:
-    auth: false
   Edit:
-    auth: true
+  InsertUserLog:
+    no_auth: true

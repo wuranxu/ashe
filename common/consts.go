@@ -34,7 +34,7 @@ type YamlConfig struct {
 }
 
 type Md struct {
-	Auth bool `yaml:"auth"`
+	NoAuth bool `yaml:"no_auth"`
 }
 
 func Init(file string) {

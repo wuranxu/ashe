@@ -13,4 +13,6 @@ service user {
     };
     rpc Edit (protocol.Request) returns (protocol.Response) {
     }
+    rpc InsertUserLog (protocol.Request) returns (protocol.Response) {
+    }
 }

@@ -85,10 +85,6 @@ func (j *Job) List(ctx context.Context, in *protocol.Request) (*protocol.Respons
 	return res, nil
 }
 
-func (j *Job) TestAssert(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
-	return protocol.Call("assert", "equal", &protocol.Request{
-	})
-}
 
 func (j *Job) Sync(ctx context.Context, in *protocol.Request) (*protocol.Response, error) {
 	res := new(protocol.Response)

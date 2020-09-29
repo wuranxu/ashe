@@ -86,3 +86,8 @@ func Edit(nickname, email string, userId int) error {
 	})
 	return err
 }
+
+
+func Insert(log *TUserLog) error {
+	return Conn.Insert(log)
+}

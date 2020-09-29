@@ -31,7 +31,7 @@ func main() {
 	// Resource: http://localhost:8080
 	//app.Handle("POST", "/:service/:method", auth.Auth(handler.CallRpc))
 	//app.Handle("POST", "/api/:service/:method", auth.Auth(handler.CallRpcWithAuth))
-	app.Handle("POST", "/:service/:method", handler.CallRpc)
+	app.Handle("POST", "/:version/:service/:method", handler.CallRpc)
 
 	// same as app.Handle("GET", "/ping", [...])
 	// Method:   GET

@@ -5,6 +5,7 @@ import (
 	"ashe/protocol"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/kataras/iris"
 )
 
@@ -13,11 +14,14 @@ const (
 	LoginRequired
 	MethodNotFound
 	RemoteCallFailed
+	IntervalServerError
 )
 
 var (
 	ParamsError = errors.New("抱歉, 网络似乎开小差了")
 	//ServiceMethodError = errors.New("抱歉, 网络似乎开小差了")
+	InnerError  = errors.New("系统内部错误")
+	SystemError = errors.New("抱歉, 网络似乎开小差了")
 )
 
 type Response interface {
@@ -35,63 +39,74 @@ func (s *res) toJson() []byte {
 	return result
 }
 
-func (s *res) toApi(resp *protocol.Response) *res {
-	s.Code, s.Msg, s.Data = resp.Code, resp.Msg, resp.ResultJson
-	//var data interface{}
-	//if err := json.Unmarshal([]byte(resp.ResultJson), &data); err == nil {
-	//	s.Data = data
-	//}
+func (s *res) Fill(code int32, msg interface{}, data ...interface{}) *res {
+	if len(data) > 0 {
+		return s.SetCode(code).SetMsg(msg).SetData(data[0])
+	}
+	return s.SetCode(code).SetMsg(msg)
+}
+
+func (s *res) SetCode(code int32) *res {
+	s.Code = code
 	return s
+}
+
+func (s *res) SetData(data interface{}) *res {
+	s.Data = data
+	return s
+}
+
+func (s *res) SetMsg(msg interface{}) *res {
+	switch msg.(type) {
+	case string:
+		s.Msg = msg.(string)
+	default:
+		s.Msg = fmt.Sprintf("%v", msg)
+	}
+	return s
+}
+
+func (s *res) toApi(resp *protocol.Response) *res {
+	if resp.ResultJson != nil {
+		if err := json.Unmarshal(resp.ResultJson, &s.Data); err != nil {
+			return s.Fill(IntervalServerError, InnerError)
+		}
+	}
+	return s.Fill(resp.Code, resp.Msg)
 }
 
 type Params map[string]interface{}
 
 func (p *Params) Marshal() (*protocol.Request, error) {
-	out := &protocol.Request{}
-	err := protocol.MarshalRequest(out, p)
-	return out, err
+	return protocol.MarshalRequest(p)
 }
 
 func response(ctx iris.Context, r *res) {
 	ctx.JSON(r)
 }
 
-func parse(params map[string]interface{}) (service string, err error) {
-	action, ok := params["action"]
-	var (
-		act string
-		suc bool
-	)
-	if act, suc = action.(string); !ok || !suc {
-		err = ParamsError
-		return
-	}
-	service = act
-	return service, nil
-}
-
 func CallRpc(ctx iris.Context) {
+	fmt.Println(ctx.Host())
+	fmt.Println(ctx.Subdomain())
+	fmt.Println(ctx.GetReferrer())
+	fmt.Println(ctx.Host())
 	result := new(res)
 	params := make(Params)
 	var userInfo *auth.CustomClaims
 	if err := ctx.ReadJSON(&params); err != nil {
-		result.Code = 40000
-		result.Msg = "抱歉，网络似乎开小差了"
-		response(ctx, result)
+		response(ctx, result.Fill(ArgsParseFailed, SystemError))
 		return
 	}
+	version := ctx.Params().Get("version")
 	service := ctx.Params().Get("service")
 	method := ctx.Params().Get("method")
-	client, err := protocol.NewGrpcClient(service, method)
+	client, err := protocol.NewGrpcClient(version, service, method)
 	defer client.Close()
 	if err != nil {
-		result.Msg = err.Error()
-		result.Code = MethodNotFound
-		response(ctx, result)
+		response(ctx, result.Fill(MethodNotFound, err))
 		return
 	}
 	// 新增请求ip地址
-	params["remote_ip"] = ctx.RemoteAddr()
 	requestData, err := params.Marshal()
 	if err != nil {
 		result.Code = ArgsParseFailed
@@ -99,20 +114,16 @@ func CallRpc(ctx iris.Context) {
 		response(ctx, result)
 		return
 	}
-	if client.Auth() {
+	if !client.NoAuth() {
 		// 需要解析token
 		if userInfo, err = auth.Authrozation(ctx); err != nil {
-			result.Code = LoginRequired
-			result.Msg = err.Error()
-			response(ctx, result)
+			response(ctx, result.Fill(LoginRequired, err))
 			return
 		}
 	}
-	resp, err := client.Invoke(requestData, userInfo)
+	resp, err := client.Invoke(requestData, ctx.RemoteAddr(), userInfo)
 	if err != nil {
-		result.Code = RemoteCallFailed
-		result.Msg = err.Error()
-		response(ctx, result)
+		response(ctx, result.Fill(RemoteCallFailed, err))
 		return
 	}
 	response(ctx, result.toApi(resp))

@@ -34,7 +34,7 @@ func (cl *Client) withAlive(name, addr string, ttl int64) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("key:%v\n", "/"+cl.scheme+"/"+name+"/"+addr)
+	fmt.Printf("service alive:%v\n", "/"+cl.scheme+"/"+name+"/"+addr)
 	if _, err := cl.cli.Put(context.Background(), "/"+cl.scheme+"/"+name+"/"+addr, addr, clientv3.WithLease(leaseResp.ID)); err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (cl *Client) RegisterApi(name string, data interface{}, config common.YamlC
 			// 说明配置文件没有包含此方法
 			log.Fatal("注册Api失败, service.yaml文件未包含此方法: ", methodName)
 		}
-		err := RegisterMethod(cl, name, methodName, md.Auth)
+		err := RegisterMethod(cl, config.Version, name, methodName, md.NoAuth)
 		if err != nil {
 			return err
 		}
