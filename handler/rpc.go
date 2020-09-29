@@ -86,10 +86,6 @@ func response(ctx iris.Context, r *res) {
 }
 
 func CallRpc(ctx iris.Context) {
-	fmt.Println(ctx.Host())
-	fmt.Println(ctx.Subdomain())
-	fmt.Println(ctx.GetReferrer())
-	fmt.Println(ctx.Host())
 	result := new(res)
 	params := make(Params)
 	var userInfo *auth.CustomClaims
