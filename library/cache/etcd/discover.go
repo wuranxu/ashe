@@ -7,20 +7,13 @@ import (
 )
 
 type Method struct {
-	NoAuth bool // 是否需要登录
-	Path   string
+	NoAuth bool  `json:"no_auth"`// 是否需要登录
+	Path   string `json:"path"`
 }
 
 func (m *Method) Marshal() string {
 	b, _ := json.Marshal(m)
 	return string(b)
-}
-
-func capitalize(str string) string {
-	for i, v := range str {
-		return string(unicode.ToUpper(v)) + str[i+1:]
-	}
-	return ""
 }
 
 func lowerFirst(str string) string {
