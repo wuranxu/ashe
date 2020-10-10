@@ -10,7 +10,7 @@ import (
 )
 
 func (cl *Client) RegisterService(name, addr string, ttl int64) error {
-	ticker := time.NewTicker(time.Second * time.Duration(ttl))
+	//ticker := time.NewTicker(time.Second * time.Duration(ttl))
 
 	go func() {
 		for {
@@ -23,7 +23,8 @@ func (cl *Client) RegisterService(name, addr string, ttl int64) error {
 				}
 			} else {
 			}
-			<-ticker.C
+			//<-ticker.C
+			time.Sleep(time.Second * time.Duration(ttl))
 		}
 	}()
 	return nil

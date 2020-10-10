@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kataras/iris"
+	"io/ioutil"
+	"strings"
 )
 
 const (
@@ -66,12 +68,45 @@ func (s *res) toApi(resp *protocol.Response) *res {
 
 type Params map[string]interface{}
 
-func (p *Params) Marshal() (*protocol.Request, error) {
+func (p Params) Marshal() (*protocol.Request, error) {
 	return protocol.MarshalRequest(p)
+}
+
+func (p Params) MakeFile(ctx iris.Context) {
+	list := fileNameList(ctx)
+	if list == nil {
+		return
+	}
+	fileList := make([]map[string]interface{}, 0, len(list))
+	for _, l := range list {
+		file, header, err := ctx.FormFile(l)
+		if err != nil {
+			continue
+		}
+		buf, err := ioutil.ReadAll(file)
+		if err != nil {
+			continue
+		}
+		file.Close()
+		fileList = append(fileList, map[string]interface{}{
+			"filename": header.Filename,
+			"size":     header.Size,
+			"content":  buf,
+		})
+	}
+	p["fileList"] = fileList
 }
 
 func response(ctx iris.Context, r *res) {
 	ctx.JSON(r)
+}
+
+func fileNameList(ctx iris.Context) []string {
+	fileList := ctx.URLParam("files")
+	if fileList == "" {
+		return nil
+	}
+	return strings.Split(fileList, ";")
 }
 
 // rpc调用接口
@@ -79,9 +114,20 @@ func CallRpc(ctx iris.Context) {
 	result := new(res)
 	params := make(Params)
 	var userInfo *auth.CustomClaims
-	if err := ctx.ReadJSON(&params); err != nil {
-		response(ctx, result.Fill(ArgsParseFailed, SystemError))
-		return
+	// 如果是form
+	if strings.Contains(ctx.GetHeader("Content-Type"), "form") {
+		values := ctx.FormValues()
+		params.MakeFile(ctx)
+		for k, v := range values {
+			if len(v) > 0 {
+				params[k] = v[0]
+			}
+		}
+	} else {
+		if err := ctx.ReadJSON(&params); err != nil {
+			response(ctx, result.Fill(ArgsParseFailed, SystemError))
+			return
+		}
 	}
 	// 获取url中版本/APP/方法名(首字母小写, 与其他语言服务保持一致)
 	version := ctx.Params().Get("version")
