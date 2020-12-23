@@ -3,7 +3,6 @@ package handler
 import (
 	"ashe/protocol"
 	"context"
-	"fmt"
 	"google.golang.org/grpc/peer"
 )
 
@@ -13,12 +12,8 @@ type RpcService struct {
 func (r *RpcService) Invoke(ctx context.Context, args *protocol.Args) (*protocol.Response, error) {
 	var ip string
 	if fromContext, ok := peer.FromContext(ctx); ok {
-		network := fromContext.Addr.Network()
-		ss := fromContext.Addr.String()
-		fmt.Println(network, ss)
+		ip = fromContext.Addr.String()
 	}
-
-
 	res := new(protocol.Response)
 	client, err := protocol.NewGrpcClient(args.Version, args.Service, args.Method)
 	if err != nil {
@@ -28,6 +23,5 @@ func (r *RpcService) Invoke(ctx context.Context, args *protocol.Args) (*protocol
 	}
 	req := new(protocol.Request)
 	req.RequestJson = args.Args
-	fmt.Println("ip: ", ip)
 	return client.Invoke(req, ip, nil)
 }

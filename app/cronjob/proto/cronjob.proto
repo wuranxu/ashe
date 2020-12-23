@@ -15,8 +15,6 @@ service cronjob {
 
     rpc List (protocol.Request) returns (protocol.Response) {
     }
-    rpc TestAssert (protocol.Request) returns (protocol.Response) {
-    }
     rpc Sync (protocol.Request) returns (protocol.Response) {
     }
 
