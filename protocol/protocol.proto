@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 
-package protocol;
+//package protocol;
 
 option go_package = "ashe/protocol";
 
@@ -15,4 +15,16 @@ message Response {
     int32 code = 1;
     string msg = 2;
     bytes resultJson = 3;
+}
+
+message Args {
+    string version = 1;
+    string service = 2;
+    string method = 3;
+    bytes args = 4;
+}
+
+service RpcService {
+    rpc Invoke (Args) returns (Response) {
+    }
 }

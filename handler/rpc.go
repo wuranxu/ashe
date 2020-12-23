@@ -39,7 +39,7 @@ type res struct {
 	Data interface{} `json:"data"`
 }
 
-func (s *res) Fill(code int32, msg interface{}, data ...interface{}) *res {
+func (s *res) Build(code int32, msg interface{}, data ...interface{}) *res {
 	s.SetMsg(msg).Code = code
 	if len(data) > 0 {
 		s.Data = data[0]
@@ -60,10 +60,10 @@ func (s *res) SetMsg(msg interface{}) *res {
 func (s *res) toApi(resp *protocol.Response) *res {
 	if resp.ResultJson != nil {
 		if err := json.Unmarshal(resp.ResultJson, &s.Data); err != nil {
-			return s.Fill(IntervalServerError, InnerError)
+			return s.Build(IntervalServerError, InnerError)
 		}
 	}
-	return s.Fill(resp.Code, resp.Msg)
+	return s.Build(resp.Code, resp.Msg)
 }
 
 type Params map[string]interface{}
@@ -125,7 +125,7 @@ func CallRpc(ctx iris.Context) {
 		}
 	} else {
 		if err := ctx.ReadJSON(&params); err != nil {
-			response(ctx, result.Fill(ArgsParseFailed, SystemError))
+			response(ctx, result.Build(ArgsParseFailed, SystemError))
 			return
 		}
 	}
@@ -136,24 +136,24 @@ func CallRpc(ctx iris.Context) {
 	client, err := protocol.NewGrpcClient(version, service, method)
 	defer client.Close()
 	if err != nil {
-		response(ctx, result.Fill(MethodNotFound, err))
+		response(ctx, result.Build(MethodNotFound, err))
 		return
 	}
 	requestData, err := params.Marshal()
 	if err != nil {
-		response(ctx, result.Fill(ArgsParseFailed, err))
+		response(ctx, result.Build(ArgsParseFailed, err))
 		return
 	}
 	if !client.NoAuth() {
 		// 需要解析token
 		if userInfo, err = auth.Authrozation(ctx); err != nil {
-			response(ctx, result.Fill(LoginRequired, err))
+			response(ctx, result.Build(LoginRequired, err))
 			return
 		}
 	}
 	resp, err := client.Invoke(requestData, ctx.RemoteAddr(), userInfo)
 	if err != nil {
-		response(ctx, result.Fill(RemoteCallFailed, err))
+		response(ctx, result.Build(RemoteCallFailed, err))
 		return
 	}
 	response(ctx, result.toApi(resp))

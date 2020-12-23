@@ -18,6 +18,11 @@ import (
 var (
 	MethodNotFound = errors.New("没有找到对应的方法，请检查您的参数")
 	log            = logging.NewLog("invoke")
+	invokeConfig   = `{
+	  "loadBalancingConfig": [ { "round_robin": {} } ],
+	  "methodConfig": []
+	}
+	`
 )
 
 type GrpcClient struct {
@@ -76,7 +81,7 @@ func NewGrpcClient(version, service, method string) (*GrpcClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, fmt.Sprintf("%s:///%s", re.Scheme(), service),
-		grpc.WithBalancerName("round_robin"), grpc.WithInsecure())
+		grpc.WithDefaultServiceConfig(invokeConfig), grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}

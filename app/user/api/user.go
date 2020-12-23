@@ -50,14 +50,14 @@ func (*UserApi) Register(ctx context.Context, in *protocol.Request) (*protocol.R
 	usr := new(models.AsheUser)
 	res := new(protocol.Response)
 	if err := protocol.Unmarshal(in, usr); err != nil {
-		return res.Fill(ParamsError, ParamsInValid), nil
+		return res.Build(ParamsError, ParamsInValid), nil
 	}
 	// 校验参数
 	if err := check.Check(usr, ParamsCheckFailed); err != nil {
-		return res.Fill(ParamsError, err), nil
+		return res.Build(ParamsError, err), nil
 	}
 	if err := usr.Register(); err != nil {
-		return res.Fill(RegisterError, err), nil
+		return res.Build(RegisterError, err), nil
 	}
 	res.Msg = "注册成功"
 	return res, nil
@@ -68,18 +68,18 @@ func (*UserApi) Login(ctx context.Context, in *protocol.Request) (*protocol.Resp
 	metadata.FromIncomingContext(ctx)
 	var form LoginForm
 	if err := protocol.Unmarshal(in, &form); err != nil {
-		return res.Fill(LoginParamsError, ParamsInValid), nil
+		return res.Build(LoginParamsError, ParamsInValid), nil
 	}
 	// 校验参数
 	if err := check.Check(&form, ParamsCheckFailed); err != nil {
-		return res.Fill(ParamsError, err), nil
+		return res.Build(ParamsError, err), nil
 	}
 	pwd := utils.Encode(form.Password)
 	user, token, err := models.LoginVerify(form.Username, pwd)
 	if err != nil {
-		return res.Fill(LoginFailed, err), nil
+		return res.Build(LoginFailed, err), nil
 	}
-	return res.Fill(Success, LoginSuccess, map[string]interface{}{
+	return res.Build(Success, LoginSuccess, map[string]interface{}{
 		"token": token,
 		"user":  user.AsheUserJson(),
 	}), nil
@@ -89,15 +89,15 @@ func (*UserApi) Edit(ctx context.Context, in *protocol.Request) (*protocol.Respo
 	res := new(protocol.Response)
 	user, err := protocol.FetchUserInfo(ctx)
 	if err != nil {
-		return res.Fill(TokenParseFailed, err), nil
+		return res.Build(TokenParseFailed, err), nil
 	}
 	data := new(EditForm)
 	if err = protocol.Unmarshal(in, data); err != nil {
-		return res.Fill(ParamsError, ParamsInValid), nil
+		return res.Build(ParamsError, ParamsInValid), nil
 	}
 	// 校验参数
 	if err := check.Check(data, ParamsCheckFailed); err != nil {
-		return res.Fill(ParamsError, err), nil
+		return res.Build(ParamsError, err), nil
 	}
 	if err = models.Edit(data.Nickname, data.Email, user.ID); err != nil {
 		res.Code = EditUserFailed
@@ -112,7 +112,7 @@ func (*UserApi) InsertUserLog(ctx context.Context, in *protocol.Request) (*proto
 	res := new(protocol.Response)
 	data := new(models.TUserLog)
 	if err := protocol.Unmarshal(in, data); err != nil {
-		return res.Fill(ParamsError, ParamsCheckError), nil
+		return res.Build(ParamsError, ParamsCheckError), nil
 	}
 	if err := models.Insert(data); err != nil {
 		res.Msg = "失败"

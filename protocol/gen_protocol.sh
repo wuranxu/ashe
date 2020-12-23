@@ -1,1 +1,1 @@
-protoc -I ../ -I . --go_out=../../ protocol.proto
+protoc -I ../ -I . --go_out=plugins=grpc:../../ protocol.proto

@@ -15,7 +15,7 @@ var (
 	DecodeError        = "解析返回数据失败"
 )
 
-func (m *Response) Fill(code int32, msg interface{}, data ...interface{}) *Response {
+func (m *Response) Build(code int32, msg interface{}, data ...interface{}) *Response {
 	m.Code = code
 	if msg != nil {
 		switch msg.(type) {
