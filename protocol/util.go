@@ -1,11 +1,11 @@
 package protocol
 
 import (
-	"ashe/library/auth"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/wuranxu/library/auth"
 	"google.golang.org/grpc/metadata"
 )
 

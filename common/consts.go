@@ -1,17 +1,18 @@
 package common
 
 import (
-	"ashe/library/cache/redis"
-	"ashe/library/conf"
-	"ashe/library/logging"
+	rds "github.com/go-redis/redis"
+	"github.com/wuranxu/library/conf"
+	logger "github.com/wuranxu/library/log"
 	"sync"
 	"time"
 )
 
 var (
 	Conf = new(Config)
-	Env  = "dev"
-	log  = logging.NewLog("config")
+	Env  = "DEV"
+	log  = logger.InitLogger("logs/config.log")
+	once sync.Once
 )
 
 type EtcdConfig struct {
@@ -20,10 +21,10 @@ type EtcdConfig struct {
 }
 
 type Config struct {
-	Etcd     EtcdConfig         `json:"etcd"`
-	Database conf.SqlConfig     `json:"database"`
-	Redis    redis.RedisCliInfo `json:"redis"`
-	Scheme   string             `json:"scheme"`
+	Etcd     EtcdConfig     `json:"etcd"`
+	Database conf.SqlConfig `json:"database"`
+	Redis    rds.Options    `json:"redis"`
+	Scheme   string         `json:"scheme"`
 }
 
 type YamlConfig struct {
@@ -38,11 +39,8 @@ type Md struct {
 }
 
 func Init(file string) {
-	log.Infoln("本机环境: ", Env)
-	var (
-		once sync.Once
-		err  error
-	)
+	log.Info("本机环境: ", Env)
+	var err error
 	once.Do(func() {
 		err = conf.ParseConfig(file, Conf, Env)
 		if err != nil {

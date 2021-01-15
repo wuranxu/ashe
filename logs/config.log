@@ -108,3 +108,13 @@ time="2020-09-24T16:34:16+08:00" level=info msg="本机环境:  dev"
 [INFO] [2020-12-23 16:15:00.817] [consts.go:41][GOID:1] 本机环境:  dev
 [INFO] [2020-12-23 16:22:35.559] [consts.go:41][GOID:1] 本机环境:  dev
 [INFO] [2020-12-23 16:28:36.625] [consts.go:41][GOID:1] 本机环境:  dev
+[INFO] [2021-01-13 14:57:18.439] [consts.go:41][GOID:1] 本机环境:  dev
+[INFO] [2021-01-13 14:58:10.317] [consts.go:41][GOID:1] 本机环境:  dev
+[INFO] [2021-01-13 14:59:06.289] [consts.go:41][GOID:1] 本机环境:  dev
+[INFO] [2021-01-14 15:21:48.974] [consts.go:42][GOID:1] 本机环境:  DEV
+[FATAL] [2021-01-14 15:21:48.975] [consts.go:47][GOID:1] 获取配置出错, error: config is not found
+[INFO] [2021-01-14 15:22:05.493] [consts.go:42][GOID:1] 本机环境:  DEV
+[INFO] [2021-01-14 15:22:47.529] [consts.go:42][GOID:1] 本机环境:  DEV
+[INFO] [2021-01-14 15:23:27.672] [consts.go:42][GOID:1] 本机环境:  DEV
+[INFO] [2021-01-14 15:28:58.234] [consts.go:42][GOID:1] 本机环境:  DEV
+[INFO] [2021-01-14 15:32:37.993] [consts.go:42][GOID:1] 本机环境:  DEV

@@ -2,12 +2,13 @@ package models
 
 import (
 	"ashe/app/user/utils"
-	"ashe/library/auth"
-	"ashe/library/database"
-	tm "ashe/library/time"
+	"ashe/handler"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
+	"github.com/wuranxu/library/auth"
+	"github.com/wuranxu/library/dao"
+	tm "github.com/wuranxu/library/time"
 	"time"
 )
 
@@ -59,7 +60,7 @@ func LoginVerify(username, password string) (*AsheUser, string, error) {
 		return nil, token, UserInvalid
 	}
 	// 根据用户名和Email以及姓名生成token
-	jt := auth.NewJWT()
+	jt := auth.NewJWT(handler.SignKey)
 	token, err := jt.CreateToken(auth.CustomClaims{
 		ID:             user.ID,
 		Email:          user.Email,
@@ -86,7 +87,6 @@ func Edit(nickname, email string, userId int) error {
 	})
 	return err
 }
-
 
 func Insert(log *TUserLog) error {
 	return Conn.Insert(log)

@@ -5,12 +5,12 @@ import (
 	"ashe/app/cronjob/models"
 	pb "ashe/app/cronjob/proto"
 	"ashe/common"
+	"ashe/cronjob"
 	"ashe/db"
-	"ashe/library/cache/etcd"
-	"ashe/library/conf"
-	"ashe/library/cronjob"
-	nt "ashe/library/net"
 	"flag"
+	"github.com/wuranxu/library/conf"
+	nt "github.com/wuranxu/library/net"
+	"github.com/wuranxu/library/service/etcd"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -21,26 +21,26 @@ import (
 
 const (
 	ServiceName = "user"
-	Port        = ":12688"
+	Port        = ":0"
 )
 
 var (
 	port    = flag.String("port", Port, "grpc endpoints")
 	service = flag.String("service", ServiceName, "grpc endpoints")
 	//config    = flag.String("configPath", `../../config.json`, "config file path")
-	config    = flag.String("configPath", `G:\golang\ashe\config.json`, "config file path")
+	config = flag.String("configPath", `G:\golang\ashe\config.json`, "config file path")
 	//config = flag.String("configPath", `/Users/wuranxu/Downloads/ashe/config.json`, "config file path")
 )
 
 func main() {
 	flag.Parse()
 	common.Init(*config)
-	var yamlConfig common.YamlConfig
+	var yamlConfig conf.YamlConfig
 	if err := conf.ParseYaml(`G:\golang\ashe\app\cronjob\service.yaml`, &yamlConfig); err != nil {
 		log.Fatal(err)
 	}
 	models.Conn = db.Init(models.Tables)
-	cronjob.InitRedisConnection(common.Conf.Redis)
+	cronjob.InitRedisConnection(&conf.Conf.Redis)
 	lis, err := net.Listen("tcp", *port)
 	if err != nil {
 		log.Fatal("服务挂壁了, error: ", err)
@@ -49,8 +49,8 @@ func main() {
 
 	s := grpc.NewServer()
 	pb.RegisterCronjobServer(s, &api.Job{})
-	cronjob.InitRedisConnection(common.Conf.Redis)
-	cli, err := etcd.NewClient(common.Conf.Etcd)
+	cronjob.InitRedisConnection(&conf.Conf.Redis)
+	cli, err := etcd.NewClient(conf.Conf.Etcd)
 	if err != nil {
 		panic(err)
 	}

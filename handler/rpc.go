@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"ashe/library/auth"
 	"ashe/protocol"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/kataras/iris"
+	"github.com/wuranxu/library/auth"
 	"io/ioutil"
 	"strings"
 )
@@ -146,7 +146,7 @@ func CallRpc(ctx iris.Context) {
 	}
 	if !client.NoAuth() {
 		// 需要解析token
-		if userInfo, err = auth.Authrozation(ctx); err != nil {
+		if userInfo, err = Authorization(ctx); err != nil {
 			response(ctx, result.Build(LoginRequired, err))
 			return
 		}

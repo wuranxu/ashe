@@ -1,7 +1,6 @@
 package main
 
 import (
-	"ashe/common"
 	"ashe/handler"
 	"ashe/protocol"
 	"flag"
@@ -9,6 +8,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
+	"github.com/wuranxu/library/conf"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -17,7 +17,7 @@ import (
 var (
 	serverHost = flag.String("host", "0.0.0.0", "网关服务地址")
 	serverPort = flag.Int("port", 8080, "网关服务端口号")
-	rpcPort    = flag.Int("rpcPort", 18080, "网关rpc服务端口号")
+	rpcPort    = flag.Int("rpcPort", 0, "网关rpc服务端口号")
 	configPath = flag.String("config", "./config.json", "网关配置文件")
 )
 
@@ -36,7 +36,7 @@ func startRpcService(rpcPort string) {
 
 func main() {
 	flag.Parse()
-	common.Init(*configPath)
+	conf.Init(*configPath)
 	app := iris.New()
 	app.Logger().SetLevel("debug")
 	// Optionally, add two built'n handlers

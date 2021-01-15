@@ -1,3 +1,7 @@
 .idea
 
 logs
+
+.DS_Store
+
+library.zip

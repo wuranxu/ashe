@@ -1,5 +1,5 @@
 {
-  "dev": {
+  "DEV": {
     "database": {
       "name": "mysql",
       "host": "47.112.32.195",
@@ -14,19 +14,16 @@
       "endpoints": [
         "218.95.37.205:2379"
       ],
-      "dial-timeout": 10
+      "dial-timeout": 10,
+      "scheme": "ashe"
     },
     "redis": {
-      "server": "106.13.173.14:6379",
-      "password": "ashetest",
-      "port": 6379,
-      "db": 1,
-      "max_idle": 50,
-      "max_active": 50,
-      "pool_size": 100,
-      "idle_timeout": 5
-    },
-    "scheme": "ashe"
+      "Addr": "106.13.173.14:6379",
+      "Password": "ashetest",
+      "Db": 1,
+      "IdleTimeout": 5,
+      "PoolSize": 30
+    }
   },
   "pro": {
     "database": {

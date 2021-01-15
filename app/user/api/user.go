@@ -3,11 +3,11 @@ package api
 import (
 	"ashe/app/user/models"
 	"ashe/app/user/utils"
-	"ashe/exception"
-	"ashe/library/check"
 	"ashe/protocol"
 	"context"
 	"errors"
+	"github.com/wuranxu/library/exception"
+	"github.com/wuranxu/library/validate"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -53,7 +53,7 @@ func (*UserApi) Register(ctx context.Context, in *protocol.Request) (*protocol.R
 		return res.Build(ParamsError, ParamsInValid), nil
 	}
 	// 校验参数
-	if err := check.Check(usr, ParamsCheckFailed); err != nil {
+	if err := validate.Check(usr, ParamsCheckFailed); err != nil {
 		return res.Build(ParamsError, err), nil
 	}
 	if err := usr.Register(); err != nil {
@@ -71,7 +71,7 @@ func (*UserApi) Login(ctx context.Context, in *protocol.Request) (*protocol.Resp
 		return res.Build(LoginParamsError, ParamsInValid), nil
 	}
 	// 校验参数
-	if err := check.Check(&form, ParamsCheckFailed); err != nil {
+	if err := validate.Check(&form, ParamsCheckFailed); err != nil {
 		return res.Build(ParamsError, err), nil
 	}
 	pwd := utils.Encode(form.Password)
@@ -96,7 +96,7 @@ func (*UserApi) Edit(ctx context.Context, in *protocol.Request) (*protocol.Respo
 		return res.Build(ParamsError, ParamsInValid), nil
 	}
 	// 校验参数
-	if err := check.Check(data, ParamsCheckFailed); err != nil {
+	if err := validate.Check(data, ParamsCheckFailed); err != nil {
 		return res.Build(ParamsError, err), nil
 	}
 	if err = models.Edit(data.Nickname, data.Email, user.ID); err != nil {

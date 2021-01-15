@@ -3,7 +3,7 @@ package api
 import (
 	"ashe/app/cronjob/code"
 	"ashe/app/cronjob/models"
-	"ashe/library/check"
+	"github.com/wuranxu/library/validate"
 	"ashe/protocol"
 	"context"
 )
@@ -27,7 +27,7 @@ func (j *Job) Add(ctx context.Context, in *protocol.Request) (*protocol.Response
 		return res, nil
 	}
 	// 校验参数
-	if err := check.Check(jb, code.ParamsCheckError); err != nil {
+	if err := validate.Check(jb, code.ParamsCheckError); err != nil {
 		res.Code = code.JobParseFail
 		res.Msg = err.Error()
 		return res, nil

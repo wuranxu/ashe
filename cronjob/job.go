@@ -2,11 +2,12 @@ package cronjob
 
 import (
 	exp "ashe/exception"
-	"ashe/library/cache/redis"
 	"encoding/json"
 	"fmt"
 	rds "github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
+	"github.com/wuranxu/library/cache/redis"
+	"log"
 	"sort"
 	"time"
 )
@@ -17,17 +18,21 @@ const (
 )
 
 var (
-	PageSizeTooLong  = exp.ErrString(fmt.Sprintf("任务列表pageSize不能超过%d条", MaxPageSize))
-	PageOutOfRange   = exp.ErrString("job页数超出范围")
-	PageError        = exp.ErrString("page/pageSize必须大于0")
+	PageSizeTooLong = exp.ErrString(fmt.Sprintf("任务列表pageSize不能超过%d条", MaxPageSize))
+	PageOutOfRange  = exp.ErrString("job页数超出范围")
+	PageError       = exp.ErrString("page/pageSize必须大于0")
 )
 
 var (
 	Pool *rds.Client
 )
 
-func InitRedisConnection(cfg redis.RedisCliInfo) {
-	Pool = redis.NewClient(cfg)
+func InitRedisConnection(cfg *rds.Options) {
+	var err error
+	Pool, err = redis.NewClient(cfg)
+	if err != nil {
+		log.Fatal("connect redis failed, error: ", err)
+	}
 }
 
 type Job struct {
@@ -64,7 +69,7 @@ func SetJobToRedis(j *Job) error {
 	if err != nil {
 		return err
 	}
-	if err = Pool.Set(fmt.Sprintf(`%s:%d`, JobPrefix, j.ID), result, 5 * time.Minute).Err(); err != nil {
+	if err = Pool.Set(fmt.Sprintf(`%s:%d`, JobPrefix, j.ID), result, 5*time.Minute).Err(); err != nil {
 		return err
 	}
 	return nil

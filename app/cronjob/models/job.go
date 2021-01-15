@@ -1,9 +1,9 @@
 package models
 
 import (
+	"ashe/cronjob"
 	exp "ashe/exception"
-	"ashe/library/cronjob"
-	"ashe/library/database"
+	"github.com/wuranxu/library/dao"
 	"time"
 )
 
@@ -116,7 +116,7 @@ func NewAsheJob(name, command, ip, user string, userId uint, pid ...uint) error 
 // 删除job
 func DelJob(id uint) error {
 	job := &AsheJob{Job: cronjob.Job{ID: id}}
-	n, err := Conn.Updates(job, database.Columns{"deleted": true})
+	n, err := Conn.Updates(job, dao.Columns{"deleted": true})
 	if err != nil || n == 0 {
 		return DeleteError.New(err)
 	}

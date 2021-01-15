@@ -1,14 +1,14 @@
 package protocol
 
 import (
-	"ashe/common"
-	"ashe/library/auth"
-	"ashe/library/cache/etcd"
-	"ashe/library/logging"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/wuranxu/library/auth"
+	"github.com/wuranxu/library/conf"
+	logger "github.com/wuranxu/library/log"
+	"github.com/wuranxu/library/service/etcd"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/resolver"
@@ -17,7 +17,7 @@ import (
 
 var (
 	MethodNotFound = errors.New("没有找到对应的方法，请检查您的参数")
-	log            = logging.NewLog("invoke")
+	log            = logger.InitLogger("logs/invoke.log")
 	invokeConfig   = `{
 	  "loadBalancingConfig": [ { "round_robin": {} } ],
 	  "methodConfig": []
@@ -61,7 +61,7 @@ func (c *GrpcClient) getCallAddr(version, service, method string) (etcd.Method, 
 	var md etcd.Method
 	addr := c.cli.GetSingle(fmt.Sprintf("%s.%s.%s", version, service, method))
 	if addr == "" {
-		log.Infof("版本:[%s] 服务:[%s] 方法:[%s]未找到", version, service, method)
+		log.Errorf("版本:[%s] 服务:[%s] 方法:[%s]未找到", version, service, method)
 		return md, MethodNotFound
 	}
 	if err := json.Unmarshal([]byte(addr), &md); err != nil {
@@ -71,11 +71,11 @@ func (c *GrpcClient) getCallAddr(version, service, method string) (etcd.Method, 
 }
 
 func NewGrpcClient(version, service, method string) (*GrpcClient, error) {
-	cl, err := etcd.NewClient(common.Conf.Etcd)
+	cl, err := etcd.NewClient(conf.Conf.Etcd)
 	if err != nil {
 		return nil, err
 	}
-	re := etcd.NewResolver(cl)
+	re := etcd.NewResolver(cl, conf.Conf.Etcd.Scheme)
 	resolver.Register(re)
 	// 3秒未连接上直接返回
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

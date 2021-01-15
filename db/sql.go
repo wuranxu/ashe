@@ -1,13 +1,13 @@
 package db
 
 import (
-	"ashe/common"
-	"ashe/library/database"
+	"github.com/wuranxu/library/conf"
+	"github.com/wuranxu/library/dao"
 	"log"
 )
 
-func Init(tables []interface{}) *database.Cursor{
-	conn, err := database.NewConnect(common.Conf.Database)
+func Init(tables []interface{}) *dao.Cursor {
+	conn, err := dao.NewConnect(conf.Conf.Database)
 	if err != nil {
 		log.Fatalf("连接数据库失败, error: %v", err)
 	}
@@ -16,6 +16,6 @@ func Init(tables []interface{}) *database.Cursor{
 			conn.AutoMigrate(data)
 		}
 	}
-	conn.LogMode(common.Conf.Database.LogMode)
+	conn.LogMode(conf.Conf.Database.LogMode)
 	return conn
 }

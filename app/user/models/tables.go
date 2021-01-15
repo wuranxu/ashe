@@ -1,10 +1,10 @@
 package models
 
 import (
-	"ashe/library/database"
+	"github.com/wuranxu/library/dao"
 )
 
-var Conn *database.Cursor
+var Conn *dao.Cursor
 
 var Tables = []interface{}{
 	&AsheUser{},

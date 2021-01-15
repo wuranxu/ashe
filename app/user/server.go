@@ -6,11 +6,11 @@ import (
 	pb "ashe/app/user/proto"
 	"ashe/common"
 	"ashe/db"
-	"ashe/library/cache/etcd"
-	"ashe/library/conf"
-	nt "ashe/library/net"
 	"flag"
 	"fmt"
+	"github.com/wuranxu/library/conf"
+	nt "github.com/wuranxu/library/net"
+	"github.com/wuranxu/library/service/etcd"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -28,7 +28,7 @@ var (
 func main() {
 	flag.Parse()
 	common.Init(*config)
-	var yamlConfig common.YamlConfig
+	var yamlConfig conf.YamlConfig
 	if err := conf.ParseYaml(*yamlPath, &yamlConfig); err != nil {
 		//if err := conf.ParseYaml(`./service.yaml`, &yamlConfig); err != nil {
 		log.Fatal(err)
@@ -43,7 +43,7 @@ func main() {
 
 	s := grpc.NewServer()
 	pb.RegisterUserServer(s, &api.UserApi{})
-	cli, err := etcd.NewClient(common.Conf.Etcd)
+	cli, err := etcd.NewClient(conf.Conf.Etcd)
 	if err != nil {
 		panic(err)
 	}
